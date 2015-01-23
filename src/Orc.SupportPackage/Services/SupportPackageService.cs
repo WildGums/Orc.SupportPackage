@@ -8,26 +8,21 @@
 namespace Orc.SupportPackage.Services
 {
     using System;
-    using System.Collections.Generic;
     using System.Drawing.Imaging;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Xml.Serialization;
-    using SystemInfo.Models;
+    using SystemInfo.Services;
     using Catel;
     using Catel.Logging;
     using Ionic.Zip;
 
-    using Orc.SystemInfo.Services;
-
     internal class SupportPackageService : ISupportPackageService
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
-
         private readonly IScreenCaptureService _screenCaptureService;
-
         private readonly ISystemInfoService _systemInfoService;
 
         public SupportPackageService(ISystemInfoService systemInfoService, IScreenCaptureService screenCaptureService)
@@ -39,19 +34,22 @@ namespace Orc.SupportPackage.Services
             _screenCaptureService = screenCaptureService;
         }
 
-        public async Task CreateSupportPackage(string zipFileName)
+        public async Task<bool> CreateSupportPackage(string zipFileName)
         {
             Argument.IsNotNullOrEmpty(() => zipFileName);
 
+            bool result = true;
             try
             {
+                Log.Info("Creating support package");
+
                 var applicationDataDirectory = Catel.IO.Path.GetApplicationDataDirectory();
 
                 var sysinfoFileName = Path.Combine(applicationDataDirectory, "sysinfo.xml");
-                SaveSysInfo(sysinfoFileName);
+                GetAndSaveSystemInformation(sysinfoFileName);
 
                 var screenshotFileName = Path.Combine(applicationDataDirectory, "screenshot.jpg");
-                await SaveScreenshot(screenshotFileName);
+                await CaptureWindowAndSave(screenshotFileName);
 
                 using (var zipFile = new ZipFile())
                 {
@@ -61,14 +59,19 @@ namespace Orc.SupportPackage.Services
 
                 File.Delete(sysinfoFileName);
                 File.Delete(screenshotFileName);
+
+                Log.Info("Support package created");
             }
             catch (Exception ex)
             {
-                Log.ErrorWithData(ex, "Error while createin support package");
+                result = false;
+                Log.ErrorWithData(ex, "Error while creating support package");
             }
+
+            return result;
         }
 
-        private async Task SaveScreenshot(string screenshotFile)
+        private async Task CaptureWindowAndSave(string screenshotFile)
         {
             Argument.IsNotNullOrEmpty(() => screenshotFile);
 
@@ -77,24 +80,17 @@ namespace Orc.SupportPackage.Services
             image.Save(screenshotFile, ImageFormat.Jpeg);
         }
 
-        private void SaveSysInfo(string sysInfoFile)
+        private void GetAndSaveSystemInformation(string sysInfoFile)
         {
             Argument.IsNotNullOrEmpty(() => sysInfoFile);
 
             var systemInfo = _systemInfoService.GetSystemInfo().AsParallel().ToList();
-            SaveSystemInfo(sysInfoFile, systemInfo);
-        }
 
-        private static void SaveSystemInfo(string fileName, IEnumerable<CoupledValue<string, string>> sysInfo)
-        {
-            Argument.IsNotNullOrEmpty(() => fileName);
-            Argument.IsNotNull(() => sysInfo);
+            var serilizer = new XmlSerializer(systemInfo.GetType());
 
-            var serilizer = new XmlSerializer(sysInfo.GetType());
-
-            using (var fileStream = new FileStream(fileName, FileMode.OpenOrCreate))
+            using (var fileStream = new FileStream(sysInfoFile, FileMode.OpenOrCreate))
             {
-                serilizer.Serialize(fileStream, sysInfo);
+                serilizer.Serialize(fileStream, systemInfo);
             }
         }
     }

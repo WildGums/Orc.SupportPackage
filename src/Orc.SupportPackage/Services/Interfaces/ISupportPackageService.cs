@@ -4,6 +4,6 @@ namespace Orc.SupportPackage.Services
 
     public interface ISupportPackageService
     {
-        Task CreateSupportPackage(string zipFileName);
+        Task<bool> CreateSupportPackage(string zipFileName);
     }
 }
