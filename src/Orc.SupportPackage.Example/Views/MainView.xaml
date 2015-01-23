@@ -1,0 +1,24 @@
+﻿<catel:Window x:Class="Orc.SupportPackage.Example.Views.MainView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:catel="http://catel.codeplex.com"
+        Title="MainView" Height="340" Width="606">
+    <catel:TabControl>
+        <TabItem Header="Screen capture">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Button Content="Make screenshot" Grid.Column="0" Grid.Row="0" Command="{Binding Screenshot}"/>
+                <Image Source="{Binding ScreenPic}" Grid.Column="0" Grid.Row="1"/>
+            </Grid>
+        </TabItem>
+        <TabItem Header="System information">
+            <Grid>
+                
+            </Grid>
+        </TabItem>
+    </catel:TabControl>    
+</catel:Window>
