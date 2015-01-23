@@ -17,7 +17,12 @@
         </TabItem>
         <TabItem Header="System information">
             <Grid>
-                
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Button Content="Show system information" Grid.Column="0" Grid.Row="0" Command="{Binding ShowSystemInfo}"/>
+                <TextBox Text="{Binding SystemInfo}" Grid.Column="0" Grid.Row="1"/>
             </Grid>
         </TabItem>
     </catel:TabControl>    
