@@ -13,8 +13,7 @@
                 </Grid.RowDefinitions>
 
                 <Button Content="Make screenshot" Grid.Column="0" Grid.Row="0" Command="{Binding Screenshot}"/>
-                <Image Source="{Binding ScreenPic}" Grid.Column="0" Grid.Row="1"/>
-                <Custom:RibbonButton Label="Button" Grid.Row="1"/>
+                <Image Source="{Binding ScreenPic}" Grid.Column="0" Grid.Row="1"/>                
             </Grid>
         </TabItem>
         <TabItem Header="System information">

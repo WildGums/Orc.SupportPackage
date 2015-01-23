@@ -7,6 +7,7 @@
 
 namespace Orc.SupportPackage.Services
 {
+    using System;
     using System.Collections.Generic;
     using System.Drawing.Imaging;
     using System.IO;
@@ -14,15 +15,17 @@ namespace Orc.SupportPackage.Services
     using System.Threading.Tasks;
     using System.Windows;
     using System.Xml.Serialization;
-
+    using SystemInfo.Models;
     using Catel;
-
+    using Catel.Logging;
     using Ionic.Zip;
 
     using Orc.SystemInfo.Services;
 
     internal class SupportPackageService : ISupportPackageService
     {
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
         private readonly IScreenCaptureService _screenCaptureService;
 
         private readonly ISystemInfoService _systemInfoService;
@@ -40,54 +43,58 @@ namespace Orc.SupportPackage.Services
         {
             Argument.IsNotNullOrEmpty(() => zipFileName);
 
-            var applicationDataDirectory = Catel.IO.Path.GetApplicationDataDirectory();
-
-            var sysinfoFileName = Path.Combine(applicationDataDirectory, "sysinfo.xml");
-            var sysInfoFile = SaveSysInfo(sysinfoFileName);
-
-            var screenshotFileName = Path.Combine(applicationDataDirectory, "screenshot.jpg");
-            var screenshotFile = await SaveScreenshot(screenshotFileName);
-
-            using (var zipFile = new ZipFile())
+            try
             {
-                zipFile.AddDirectory(applicationDataDirectory, null);
-                zipFile.Save(zipFileName);
-            }
+                var applicationDataDirectory = Catel.IO.Path.GetApplicationDataDirectory();
 
-            File.Delete(sysInfoFile);
-            File.Delete(screenshotFile);
+                var sysinfoFileName = Path.Combine(applicationDataDirectory, "sysinfo.xml");
+                SaveSysInfo(sysinfoFileName);
+
+                var screenshotFileName = Path.Combine(applicationDataDirectory, "screenshot.jpg");
+                await SaveScreenshot(screenshotFileName);
+
+                using (var zipFile = new ZipFile())
+                {
+                    zipFile.AddDirectory(applicationDataDirectory, null);
+                    zipFile.Save(zipFileName);
+                }
+
+                File.Delete(sysinfoFileName);
+                File.Delete(screenshotFileName);
+            }
+            catch (Exception ex)
+            {
+                Log.ErrorWithData(ex, "Error while createin support package");
+            }
         }
 
-        private async Task<string> SaveScreenshot(string screenshotFile)
+        private async Task SaveScreenshot(string screenshotFile)
         {
             Argument.IsNotNullOrEmpty(() => screenshotFile);
 
             var mainWindow = Application.Current.MainWindow;
             var image = await _screenCaptureService.CaptureWindowImage(mainWindow);
             image.Save(screenshotFile, ImageFormat.Jpeg);
-            return screenshotFile;
         }
 
-        private string SaveSysInfo(string sysInfoFile)
+        private void SaveSysInfo(string sysInfoFile)
         {
             Argument.IsNotNullOrEmpty(() => sysInfoFile);
 
-            var systemInfo = _systemInfoService.GetSystemInfo().AsParallel();
-            var keyValuePairs = systemInfo.ToDictionary(x => x.Key, x => x.Value);
-            SaveSystemInfo(sysInfoFile, keyValuePairs);
-            return sysInfoFile;
+            var systemInfo = _systemInfoService.GetSystemInfo().AsParallel().ToList();
+            SaveSystemInfo(sysInfoFile, systemInfo);
         }
 
-        private static void SaveSystemInfo(string fileName, Dictionary<string, string> sysInfoDictionary)
+        private static void SaveSystemInfo(string fileName, IEnumerable<CoupledValue<string, string>> sysInfo)
         {
             Argument.IsNotNullOrEmpty(() => fileName);
-            Argument.IsNotNull(() => sysInfoDictionary);
+            Argument.IsNotNull(() => sysInfo);
 
-            var serilizer = new XmlSerializer(typeof(Dictionary<string, string>));
+            var serilizer = new XmlSerializer(sysInfo.GetType());
 
-            using (var fileStream = new FileStream(fileName, FileMode.Open))
+            using (var fileStream = new FileStream(fileName, FileMode.OpenOrCreate))
             {
-                serilizer.Serialize(fileStream, sysInfoDictionary);
+                serilizer.Serialize(fileStream, sysInfo);
             }
         }
     }
