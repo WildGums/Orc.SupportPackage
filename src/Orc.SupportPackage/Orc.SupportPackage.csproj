@@ -103,7 +103,6 @@
     <Compile Include="Services\Interfaces\IScreenCaptureService.cs" />
     <Compile Include="Services\ScreenCaptureService.cs" />
     <Compile Include="Services\SupportPackageService.cs" />
-    <Compile Include="Services\ZipService.cs" />
     <Compile Include="Win32\User32.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -114,7 +113,6 @@
     <Content Include="FodyWeavers.xml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Services\EventArgs\" />
     <Folder Include="ViewModels\" />
     <Folder Include="Views\" />
   </ItemGroup>
