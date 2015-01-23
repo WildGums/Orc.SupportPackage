@@ -18,6 +18,7 @@ namespace Orc.SupportPackage.Example.ViewModels
     using Catel;
     using Catel.IoC;
     using Catel.MVVM;
+    using Catel.Services;
 
     using Orc.SupportPackage.Services;
     using Orc.SystemInfo.Services;
@@ -31,20 +32,39 @@ namespace Orc.SupportPackage.Example.ViewModels
 
         private readonly ISystemInfoService _systemInfoService;
 
-        public MainViewModel(IServiceLocator serviceLocator, IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService)
+        private readonly ISaveFileService _saveFileService;
+
+        private readonly ISupportPackageService _supportPackageService;
+
+        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService, ISaveFileService saveFileService, ISupportPackageService supportPackageService)
         {
-            Argument.IsNotNull(() => serviceLocator);
             Argument.IsNotNull(() => screenCaptureService);
             Argument.IsNotNull(() => systemInfoService);
+            Argument.IsNotNull(() => saveFileService);
+            Argument.IsNotNull(() => supportPackageService);
 
             _screenCaptureService = screenCaptureService;
             _systemInfoService = systemInfoService;
+            _saveFileService = saveFileService;
+            _supportPackageService = supportPackageService;
 
             Screenshot = new TaskCommand(OnScreenshotExecute);
             ShowSystemInfo = new TaskCommand(OnShowSystemInfoExecute);
-        }
+            SavePackage = new Command(OnSavePackageExecute);
+        }        
 
         #region Commands
+        public Command SavePackage { get; private set; }
+
+        private void OnSavePackageExecute()
+        {
+            _saveFileService.Filter = "Zip files|*.zip";
+            if (_saveFileService.DetermineFile())
+            {
+                _supportPackageService.CreateSupportPackage(_saveFileService.FileName);
+            }
+        }
+
         public TaskCommand Screenshot { get; private set; }
 
         private async Task OnScreenshotExecute()
