@@ -2,4 +2,10 @@
 <Weavers>
   <ModuleInit/>
   <Catel/>
+  <Costura>
+    <IncludeAssemblies>
+      Ionic.Zip
+      Orc.SystemInfo
+    </IncludeAssemblies>
+  </Costura>
 </Weavers>
