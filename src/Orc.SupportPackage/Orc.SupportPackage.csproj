@@ -96,6 +96,7 @@
       <Link>Properties\SolutionAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Models\Rect.cs" />
+    <Compile Include="Helpers\TemporaryFilesHelper.cs" />
     <Compile Include="Win32\Gdi32.cs" />
     <Compile Include="ModuleInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

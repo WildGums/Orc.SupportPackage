@@ -25,28 +25,28 @@ namespace Orc.SupportPackage.Example.ViewModels
 
     public class MainViewModel : ViewModelBase
     {
-        // without this field picture doesn't reftesh
+        // without this field picture doesn't refresh
         private static int _screenshotIndex;
 
         private readonly IScreenCaptureService _screenCaptureService;
-        private readonly ISystemInfoService _systemInfoService;
-        private readonly ISaveFileService _saveFileService;
-        private readonly ISupportPackageService _supportPackageService;
-        private readonly IDispatcherService _dispatcherService;
 
-        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService, ISaveFileService saveFileService, ISupportPackageService supportPackageService, IDispatcherService dispatcherService)
+        private readonly ISystemInfoService _systemInfoService;
+
+        private readonly ISaveFileService _saveFileService;
+
+        private readonly ISupportPackageService _supportPackageService;
+
+        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService, ISaveFileService saveFileService, ISupportPackageService supportPackageService)
         {
             Argument.IsNotNull(() => screenCaptureService);
             Argument.IsNotNull(() => systemInfoService);
             Argument.IsNotNull(() => saveFileService);
             Argument.IsNotNull(() => supportPackageService);
-            Argument.IsNotNull(() => dispatcherService);
 
             _screenCaptureService = screenCaptureService;
             _systemInfoService = systemInfoService;
             _saveFileService = saveFileService;
             _supportPackageService = supportPackageService;
-            _dispatcherService = dispatcherService;
 
             Screenshot = new TaskCommand(OnScreenshotExecute);
             ShowSystemInfo = new TaskCommand(OnShowSystemInfoExecute);
@@ -56,12 +56,12 @@ namespace Orc.SupportPackage.Example.ViewModels
         #region Commands
         public Command SavePackage { get; private set; }
 
-        private async void OnSavePackageExecute()
+        private void OnSavePackageExecute()
         {
             _saveFileService.Filter = "Zip files|*.zip";
             if (_saveFileService.DetermineFile())
             {
-                await _supportPackageService.CreateSupportPackage(_saveFileService.FileName);
+                _supportPackageService.CreateSupportPackage(_saveFileService.FileName);
             }
         }
 
@@ -88,9 +88,8 @@ namespace Orc.SupportPackage.Example.ViewModels
 
         private async Task OnShowSystemInfoExecute()
         {
-            var systemInfoLines = await Task.Factory.StartNew(() => _systemInfoService.GetSystemInfo().Select(x => string.Format("{0} {1}", x.Value1, x.Value2)));
-
-            _dispatcherService.BeginInvoke(() => SystemInfo = String.Join(Environment.NewLine, systemInfoLines));
+            var sysInfoLines = _systemInfoService.GetSystemInfo().Select(x => string.Format("{0} {1}", x.Value1, x.Value2));
+            SystemInfo = String.Join("\n", sysInfoLines);
         }
         #endregion
 

@@ -15,7 +15,7 @@ namespace Orc.SupportPackage.Services
 
     using Catel;
 
-    using Rect = Orc.SupportPackage.Models.Rect;
+    using Rect = Models.Rect;
 
     public class ScreenCaptureService : IScreenCaptureService
     {

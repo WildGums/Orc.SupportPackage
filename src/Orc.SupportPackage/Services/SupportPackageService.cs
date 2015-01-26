@@ -44,23 +44,24 @@ namespace Orc.SupportPackage.Services
             try
             {
                 Log.Info("Creating support package");
-
-                var applicationDataDirectory = Catel.IO.Path.GetApplicationDataDirectory();
-
-                var sysinfoFileName = Path.Combine(applicationDataDirectory, "sysinfo.xml");
-                GetAndSaveSystemInformation(sysinfoFileName);
-
-                var screenshotFileName = Path.Combine(applicationDataDirectory, "screenshot.jpg");
-                await CaptureWindowAndSave(screenshotFileName);
-
-                using (var zipFile = new ZipFile())
+              
+                using (var tmpHelper = new TemporaryFilesHelper())
                 {
-                    zipFile.AddDirectory(applicationDataDirectory, null);
-                    zipFile.Save(zipFileName);
-                }
+                    var sysinfoFileName = tmpHelper.RegisterFileName("sysinfo.xml");
+                    GetAndSaveSystemInformation(sysinfoFileName);
 
-                File.Delete(sysinfoFileName);
-                File.Delete(screenshotFileName);
+                    var screenshotFileName = tmpHelper.RegisterFileName("screenshot.jpg");
+                    await CaptureWindowAndSave(screenshotFileName);
+
+                    using (var zipFile = new ZipFile())
+                    {
+                        var applicationDataDirectory = Catel.IO.Path.GetApplicationDataDirectory();
+                        zipFile.AddDirectory(applicationDataDirectory, "AppData");
+                        zipFile.AddFile(sysinfoFileName, string.Empty);
+                        zipFile.AddFile(screenshotFileName, string.Empty);
+                        zipFile.Save(zipFileName);
+                    }
+                }                                              
 
                 Log.Info("Support package created");
             }
@@ -89,6 +90,13 @@ namespace Orc.SupportPackage.Services
             var systemInfo = _systemInfoService.GetSystemInfo().AsParallel().ToList();
 
             var serilizer = new XmlSerializer(systemInfo.GetType());
+
+            var directoryName = Catel.IO.Path.GetDirectoryName(sysInfoFile);
+
+            if (!Directory.Exists(directoryName))
+            {
+                Directory.CreateDirectory(directoryName);
+            }
 
             using (var fileStream = new FileStream(sysInfoFile, FileMode.OpenOrCreate))
             {
