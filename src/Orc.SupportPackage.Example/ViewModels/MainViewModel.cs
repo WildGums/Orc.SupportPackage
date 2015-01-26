@@ -56,12 +56,12 @@ namespace Orc.SupportPackage.Example.ViewModels
         #region Commands
         public Command SavePackage { get; private set; }
 
-        private void OnSavePackageExecute()
+        private async void OnSavePackageExecute()
         {
             _saveFileService.Filter = "Zip files|*.zip";
             if (_saveFileService.DetermineFile())
             {
-                _supportPackageService.CreateSupportPackage(_saveFileService.FileName);
+                await _supportPackageService.CreateSupportPackage(_saveFileService.FileName);
             }
         }
 

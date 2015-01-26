@@ -17,7 +17,7 @@ namespace Orc.SupportPackage.Services
 
     using Rect = Orc.SupportPackage.Models.Rect;
 
-    internal class ScreenCaptureService : IScreenCaptureService
+    public class ScreenCaptureService : IScreenCaptureService
     {
         public async Task<Image> CaptureWindowImage(Window window)
         {

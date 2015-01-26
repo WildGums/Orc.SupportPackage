@@ -19,9 +19,10 @@ namespace Orc.SupportPackage.Services
     using Catel.Logging;
     using Ionic.Zip;
 
-    internal class SupportPackageService : ISupportPackageService
+    public class SupportPackageService : ISupportPackageService
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
         private readonly IScreenCaptureService _screenCaptureService;
         private readonly ISystemInfoService _systemInfoService;
 
@@ -38,7 +39,8 @@ namespace Orc.SupportPackage.Services
         {
             Argument.IsNotNullOrEmpty(() => zipFileName);
 
-            bool result = true;
+            var result = true;
+
             try
             {
                 Log.Info("Creating support package");
