@@ -10,9 +10,9 @@ namespace Orc.SupportPackage
     using System;
     using System.Runtime.InteropServices;
 
-    using Orc.SupportPackage.Models;
+    using Models;
 
-    public class User32
+    internal class User32
     {
         [DllImport("user32.dll")]
         public static extern IntPtr GetWindowDC(IntPtr hWnd);
