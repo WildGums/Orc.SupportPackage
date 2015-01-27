@@ -5,7 +5,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 
-namespace Orc.SupportPackage.Models
+namespace Orc.SupportPackage
 {
     using System.Runtime.InteropServices;
 

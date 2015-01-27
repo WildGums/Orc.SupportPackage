@@ -14,14 +14,11 @@ namespace Orc.SupportPackage.Example.ViewModels
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Media.Imaging;
-
+    using SystemInfo;
     using Catel;
     using Catel.IoC;
     using Catel.MVVM;
     using Catel.Services;
-
-    using Orc.SupportPackage.Services;
-    using Orc.SystemInfo.Services;
 
     public class MainViewModel : ViewModelBase
     {
@@ -36,7 +33,8 @@ namespace Orc.SupportPackage.Example.ViewModels
 
         private readonly ISupportPackageService _supportPackageService;
 
-        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService, ISaveFileService saveFileService, ISupportPackageService supportPackageService)
+        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService, 
+            ISaveFileService saveFileService, ISupportPackageService supportPackageService)
         {
             Argument.IsNotNull(() => screenCaptureService);
             Argument.IsNotNull(() => systemInfoService);
@@ -88,7 +86,8 @@ namespace Orc.SupportPackage.Example.ViewModels
 
         private async Task OnShowSystemInfoExecute()
         {
-            var sysInfoLines = _systemInfoService.GetSystemInfo().Select(x => string.Format("{0} {1}", x.Value1, x.Value2));
+            var sysInfoElements = await _systemInfoService.GetSystemInfo();
+            var sysInfoLines = sysInfoElements.Select(x => x.ToString());
             SystemInfo = String.Join("\n", sysInfoLines);
         }
         #endregion

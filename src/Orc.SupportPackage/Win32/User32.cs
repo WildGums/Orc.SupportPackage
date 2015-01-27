@@ -10,8 +10,6 @@ namespace Orc.SupportPackage
     using System;
     using System.Runtime.InteropServices;
 
-    using Models;
-
     internal class User32
     {
         [DllImport("user32.dll")]

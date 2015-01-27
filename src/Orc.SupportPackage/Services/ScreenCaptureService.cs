@@ -5,7 +5,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 
-namespace Orc.SupportPackage.Services
+namespace Orc.SupportPackage
 {
     using System;
     using System.Drawing;
@@ -14,8 +14,6 @@ namespace Orc.SupportPackage.Services
     using System.Windows.Interop;
 
     using Catel;
-
-    using Rect = Models.Rect;
 
     public class ScreenCaptureService : IScreenCaptureService
     {

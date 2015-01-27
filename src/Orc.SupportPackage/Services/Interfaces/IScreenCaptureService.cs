@@ -5,7 +5,7 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 
-namespace Orc.SupportPackage.Services
+namespace Orc.SupportPackage
 {
     using System.Drawing;
     using System.Threading.Tasks;

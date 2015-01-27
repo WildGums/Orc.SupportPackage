@@ -5,19 +5,22 @@
 // --------------------------------------------------------------------------------------------------------------------
 
 
-namespace Orc.SupportPackage.Services
+namespace Orc.SupportPackage
 {
     using System;
     using System.Drawing.Imaging;
     using System.IO;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Xml.Serialization;
-    using SystemInfo.Services;
+    using SystemInfo;
     using Catel;
+    using Catel.Collections;
     using Catel.Logging;
     using Ionic.Zip;
+    using Ionic.Zlib;
 
     public class SupportPackageService : ISupportPackageService
     {
@@ -44,24 +47,30 @@ namespace Orc.SupportPackage.Services
             try
             {
                 Log.Info("Creating support package");
-              
-                using (var tmpHelper = new TemporaryFilesHelper())
-                {
-                    var sysinfoFileName = tmpHelper.RegisterFileName("sysinfo.xml");
-                    GetAndSaveSystemInformation(sysinfoFileName);
 
-                    var screenshotFileName = tmpHelper.RegisterFileName("screenshot.jpg");
+                using (var temporaryFilesContext = new TemporaryFilesContext())
+                {
+                    var systemInfoXmlFileName = temporaryFilesContext.GetFile("systeminfo.xml");
+                    var systemInfoTxtFileName = temporaryFilesContext.GetFile("systeminfo.txt");
+                    await GetAndSaveSystemInformation(systemInfoXmlFileName, systemInfoTxtFileName);
+
+                    var screenshotFileName = temporaryFilesContext.GetFile("screenshot.jpg");
                     await CaptureWindowAndSave(screenshotFileName);
+
+                    var applicationDataDirectory = Catel.IO.Path.GetApplicationDataDirectory();
 
                     using (var zipFile = new ZipFile())
                     {
-                        var applicationDataDirectory = Catel.IO.Path.GetApplicationDataDirectory();
+                        zipFile.CompressionLevel = CompressionLevel.BestCompression;
+
                         zipFile.AddDirectory(applicationDataDirectory, "AppData");
-                        zipFile.AddFile(sysinfoFileName, string.Empty);
+                        zipFile.AddFile(systemInfoXmlFileName, string.Empty);
+                        zipFile.AddFile(systemInfoTxtFileName, string.Empty);
                         zipFile.AddFile(screenshotFileName, string.Empty);
+
                         zipFile.Save(zipFileName);
                     }
-                }                                              
+                }
 
                 Log.Info("Support package created");
             }
@@ -83,25 +92,24 @@ namespace Orc.SupportPackage.Services
             image.Save(screenshotFile, ImageFormat.Jpeg);
         }
 
-        private void GetAndSaveSystemInformation(string sysInfoFile)
+        private async Task GetAndSaveSystemInformation(string xmlFileName, string textFileName)
         {
-            Argument.IsNotNullOrEmpty(() => sysInfoFile);
+            Argument.IsNotNullOrEmpty(() => xmlFileName);
+            Argument.IsNotNullOrEmpty(() => textFileName);
 
-            var systemInfo = _systemInfoService.GetSystemInfo().AsParallel().ToList();
+            var systemInfo = await _systemInfoService.GetSystemInfo();
 
-            var serilizer = new XmlSerializer(systemInfo.GetType());
-
-            var directoryName = Catel.IO.Path.GetDirectoryName(sysInfoFile);
-
-            if (!Directory.Exists(directoryName))
+            // Xml
+            var serializer = new XmlSerializer(systemInfo.GetType());
+            using (var fileStream = new FileStream(xmlFileName, FileMode.OpenOrCreate))
             {
-                Directory.CreateDirectory(directoryName);
+                serializer.Serialize(fileStream, systemInfo);
             }
 
-            using (var fileStream = new FileStream(sysInfoFile, FileMode.OpenOrCreate))
-            {
-                serilizer.Serialize(fileStream, systemInfo);
-            }
+            // Plain
+            var stringBuilder = new StringBuilder();
+            systemInfo.ForEach(x => stringBuilder.AppendLine(x.ToString()));
+            File.WriteAllText(textFileName, stringBuilder.ToString());
         }
     }
 }
