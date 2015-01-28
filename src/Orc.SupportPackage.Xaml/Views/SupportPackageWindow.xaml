@@ -8,6 +8,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         
         <Grid.ColumnDefinitions>
@@ -26,6 +27,9 @@
 
         <Button Grid.Row="1" Grid.Column="0" Command="{Binding CreateSupportPackage}" 
                 Content="I understand, create the support package" Margin="6" Padding="4" />
+
+        <Button Grid.Row="2" Grid.Column="0" Command="{Binding OpenDirectory}" 
+                Content="Open directory" Margin="6" Padding="4" />
     </Grid>
     
 </catel:DataWindow>

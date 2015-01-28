@@ -21,20 +21,26 @@ namespace Orc.SupportPackage.ViewModels
         private readonly ISaveFileService _saveFileService;
         private readonly ISupportPackageService _supportPackageService;
         private readonly IPleaseWaitService _pleaseWaitService;
+        private readonly IMessageService _messageService;
+        private readonly IProcessService _processService;
 
         private readonly string _assemblyTitle;
 
         #region Constructors
         public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageService supportPackageService,
-            IPleaseWaitService pleaseWaitService)
+            IPleaseWaitService pleaseWaitService, IMessageService messageService, IProcessService processService)
         {
             Argument.IsNotNull(() => saveFileService);
             Argument.IsNotNull(() => supportPackageService);
             Argument.IsNotNull(() => pleaseWaitService);
+            Argument.IsNotNull(() => messageService);
+            Argument.IsNotNull(() => processService);
 
             _saveFileService = saveFileService;
             _supportPackageService = supportPackageService;
             _pleaseWaitService = pleaseWaitService;
+            _messageService = messageService;
+            _processService = processService;
 
             var assembly = AssemblyHelper.GetEntryAssembly();
             _assemblyTitle = assembly.Title();
@@ -42,11 +48,14 @@ namespace Orc.SupportPackage.ViewModels
             Title = string.Format("Create support package for {0}", _assemblyTitle);
 
             CreateSupportPackage = new Command(OnCreateSupportPackageExecute, OnCreateSupportPackageCanExecute);
+            OpenDirectory = new Command(OnOpenDirectoryExecute, OnOpenDirectoryCanExecute);
         }
         #endregion
 
         #region Properties
+        public bool IsCreatingSupportPackage { get; private set; }
 
+        public string LastSupportPackageFileName { get; private set; }
         #endregion
 
         #region Commands
@@ -61,7 +70,7 @@ namespace Orc.SupportPackage.ViewModels
         /// <returns><c>true</c> if the command can be executed; otherwise <c>false</c></returns>
         private bool OnCreateSupportPackageCanExecute()
         {
-            return true;
+            return !IsCreatingSupportPackage;
         }
 
         /// <summary>
@@ -73,12 +82,42 @@ namespace Orc.SupportPackage.ViewModels
             _saveFileService.Filter = "Zip files|*.zip";
             if (_saveFileService.DetermineFile())
             {
+                var fileName = _saveFileService.FileName;
+
+                IsCreatingSupportPackage = true;
+
                 _pleaseWaitService.Push();
 
-                await _supportPackageService.CreateSupportPackage(_saveFileService.FileName);
+                await _supportPackageService.CreateSupportPackage(fileName);
+                LastSupportPackageFileName = fileName;
 
                 _pleaseWaitService.Pop();
+
+                IsCreatingSupportPackage = false;
             }
+        }
+
+        /// <summary>
+        /// Gets the OpenDirectory command.
+        /// </summary>
+        public Command OpenDirectory { get; private set; }
+
+        /// <summary>
+        /// Method to check whether the OpenDirectory command can be executed.
+        /// </summary>
+        /// <returns><c>true</c> if the command can be executed; otherwise <c>false</c></returns>
+        private bool OnOpenDirectoryCanExecute()
+        {
+            return !string.IsNullOrEmpty(LastSupportPackageFileName);
+        }
+
+        /// <summary>
+        /// Method to invoke when the OpenDirectory command is executed.
+        /// </summary>
+        private void OnOpenDirectoryExecute()
+        {
+            var directory = Path.GetDirectoryName(LastSupportPackageFileName);
+            _processService.StartProcess(directory);
         }
         #endregion
 
