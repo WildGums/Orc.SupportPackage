@@ -19,6 +19,7 @@ namespace Orc.SupportPackage.Example.ViewModels
     using Catel.IoC;
     using Catel.MVVM;
     using Catel.Services;
+    using SupportPackage.ViewModels;
 
     public class MainViewModel : ViewModelBase
     {
@@ -29,52 +30,29 @@ namespace Orc.SupportPackage.Example.ViewModels
 
         private readonly ISystemInfoService _systemInfoService;
 
-        private readonly ISaveFileService _saveFileService;
+        private readonly IUIVisualizerService _uiVisualizerService;
 
-        private readonly ISupportPackageService _supportPackageService;
-
-        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService, 
-            ISaveFileService saveFileService, ISupportPackageService supportPackageService)
+        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService, IUIVisualizerService uiVisualizerService)
         {
             Argument.IsNotNull(() => screenCaptureService);
             Argument.IsNotNull(() => systemInfoService);
-            Argument.IsNotNull(() => saveFileService);
-            Argument.IsNotNull(() => supportPackageService);
+            Argument.IsNotNull(() => uiVisualizerService);
 
             _screenCaptureService = screenCaptureService;
             _systemInfoService = systemInfoService;
-            _saveFileService = saveFileService;
-            _supportPackageService = supportPackageService;
+            _uiVisualizerService = uiVisualizerService;
 
             Screenshot = new TaskCommand(OnScreenshotExecute);
             ShowSystemInfo = new TaskCommand(OnShowSystemInfoExecute);
-            SavePackage = new Command(OnSavePackageExecute, OnSavePackageCanExecute);
+            SavePackage = new Command(OnSavePackageExecute);
         }
-
-        #region Properties
-        public bool IsCreatingPackage { get; set; }
-        #endregion
 
         #region Commands
         public Command SavePackage { get; private set; }
 
-        private bool OnSavePackageCanExecute()
-        {
-            return !IsCreatingPackage;
-        }
-
         private async void OnSavePackageExecute()
         {
-            IsCreatingPackage = true;
-
-            _saveFileService.Filter = "Zip files|*.zip";
-
-            if (_saveFileService.DetermineFile())
-            {
-                await _supportPackageService.CreateSupportPackage(_saveFileService.FileName);
-            }
-
-            IsCreatingPackage = false;
+            await _uiVisualizerService.ShowDialog<SupportPackageViewModel>();
         }
 
         public TaskCommand Screenshot { get; private set; }
@@ -89,11 +67,13 @@ namespace Orc.SupportPackage.Example.ViewModels
             var filename = Path.Combine(applicationDataDirectory, string.Format("screenshot{0}.jpg", _screenshotIndex++));
             image.Save(filename, ImageFormat.Jpeg);
 
-            ScreenPic = new BitmapImage();
-            ScreenPic.BeginInit();
-            ScreenPic.CacheOption = BitmapCacheOption.OnLoad;
-            ScreenPic.UriSource = new Uri(filename);
-            ScreenPic.EndInit();
+            var screenPic = new BitmapImage();
+            screenPic.BeginInit();
+            screenPic.CacheOption = BitmapCacheOption.OnLoad;
+            screenPic.UriSource = new Uri(filename);
+            screenPic.EndInit();
+
+            ScreenPic = screenPic;
         }
 
         public TaskCommand ShowSystemInfo { get; private set; }

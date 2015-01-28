@@ -1,0 +1,33 @@
+﻿<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Orc.SupportPackage.Xaml</id>
+    <version>[VERSION]</version>
+    <title>Orc.SupportPackage.Xaml</title>
+    <authors>OrchestraDevs</authors>
+    <owners>OrchestraDevs</owners>
+
+	<description>
+	  This library allows the user to create resources on a local computer and forward these to the help desk for analysis.
+	</description>
+	<summary>
+	</summary>
+
+	<tags>orc support package xaml</tags>
+
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <copyright>Copyright Wild Gums 2010 - 2015</copyright>
+
+	<language>en-US</language>
+	<projectUrl>https://github.com/WildGums/Orc.SupportPackage</projectUrl>
+	<!--<licenseUrl>http://catel.codeplex.com/license</licenseUrl>-->
+	<!--<iconUrl>http://www.catenalogic.com/catel.png</iconUrl>-->
+    
+    <dependencies>
+      <dependency id="Orc.SupportPackage" version="[VERSION]" />
+    
+      <dependency id="Catel.Core" version="[replaced]" />
+      <dependency id="Catel.MVVM" version="[replaced]" />
+    </dependencies>
+  </metadata>
+</package>

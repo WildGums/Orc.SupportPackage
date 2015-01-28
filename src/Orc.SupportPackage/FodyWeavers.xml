@@ -1,12 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Weavers>
-  <ModuleInit />
-  <Catel />
+  <ModuleInit/>
+  <Catel/>
   <Costura>
     <IncludeAssemblies>
       Ionic.Zip
       Orc.SystemInfo
     </IncludeAssemblies>
   </Costura>
-  <MethodTimer />
+  <MethodTimer/>
+  <LoadAssembliesOnStartup/>
 </Weavers>

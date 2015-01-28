@@ -1,0 +1,31 @@
+﻿<catel:DataWindow x:Class="Orc.SupportPackage.Views.SupportPackageWindow"
+                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:catel="http://catel.codeplex.com"
+                  MaxWidth="500" Height="300">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        
+        <Label Grid.Row="0" Grid.Column="0">
+            <TextBlock TextWrapping="Wrap">
+                This screen allows you to create a support package. The support package will contain information that might
+                help support engineers to analyze any possible issues.
+                <LineBreak /><LineBreak />
+                Note that support packages might contain sensitive information so make sure you only share this information
+                with a support engineer.
+            </TextBlock>
+        </Label>
+
+        <Button Grid.Row="1" Grid.Column="0" Command="{Binding CreateSupportPackage}" 
+                Content="I understand, create the support package" Margin="6" Padding="4" />
+    </Grid>
+    
+</catel:DataWindow>
