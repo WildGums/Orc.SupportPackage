@@ -8,6 +8,7 @@
 namespace Orc.SupportPackage
 {
     using System;
+    using System.Collections.Generic;
     using System.Drawing.Imaging;
     using System.IO;
     using System.Linq;
@@ -66,7 +67,7 @@ namespace Orc.SupportPackage
                     await CaptureWindowAndSave(screenshotFileName);
 
                     var supportPackageProviderTypes = (from type in TypeCache.GetTypes()
-                                                       where !type.IsAbstractEx() && type.IsClassEx() && 
+                                                       where !type.IsAbstractEx() && type.IsClassEx() &&
                                                              type.ImplementsInterfaceEx<ISupportPackageProvider>()
                                                        select type).ToList();
 
@@ -74,10 +75,14 @@ namespace Orc.SupportPackage
                     {
                         try
                         {
-                            Log.Debug("Gathering support package info from '{0}'", supportPackageProviderType.FullName);
+                            await Task.Factory.StartNew(() =>
+                            {
+                                Log.Debug("Gathering support package info from '{0}'", supportPackageProviderType.FullName);
 
-                            var provider = (ISupportPackageProvider)_typeFactory.CreateInstance(supportPackageProviderType);
-                            await provider.Provide(supportPackageContext);
+                                var provider = (ISupportPackageProvider)_typeFactory.CreateInstance(supportPackageProviderType);
+                                var task = provider.Provide(supportPackageContext);
+                                task.Wait();
+                            });
                         }
                         catch (Exception ex)
                         {

@@ -21,25 +21,22 @@ namespace Orc.SupportPackage.ViewModels
         private readonly ISaveFileService _saveFileService;
         private readonly ISupportPackageService _supportPackageService;
         private readonly IPleaseWaitService _pleaseWaitService;
-        private readonly IMessageService _messageService;
         private readonly IProcessService _processService;
 
         private readonly string _assemblyTitle;
 
         #region Constructors
         public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageService supportPackageService,
-            IPleaseWaitService pleaseWaitService, IMessageService messageService, IProcessService processService)
+            IPleaseWaitService pleaseWaitService, IProcessService processService)
         {
             Argument.IsNotNull(() => saveFileService);
             Argument.IsNotNull(() => supportPackageService);
             Argument.IsNotNull(() => pleaseWaitService);
-            Argument.IsNotNull(() => messageService);
             Argument.IsNotNull(() => processService);
 
             _saveFileService = saveFileService;
             _supportPackageService = supportPackageService;
             _pleaseWaitService = pleaseWaitService;
-            _messageService = messageService;
             _processService = processService;
 
             var assembly = AssemblyHelper.GetEntryAssembly();
@@ -78,8 +75,9 @@ namespace Orc.SupportPackage.ViewModels
         /// </summary>
         private async void OnCreateSupportPackageExecute()
         {
-            _saveFileService.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), string.Format("{0} support package.zip", AssemblyExtensions.Title(AssemblyHelper.GetEntryAssembly())));
+            _saveFileService.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), string.Format("{0} support package.zip", _assemblyTitle));
             _saveFileService.Filter = "Zip files|*.zip";
+
             if (_saveFileService.DetermineFile())
             {
                 var fileName = _saveFileService.FileName;
