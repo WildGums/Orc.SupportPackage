@@ -48,19 +48,33 @@ namespace Orc.SupportPackage.Example.ViewModels
 
             Screenshot = new TaskCommand(OnScreenshotExecute);
             ShowSystemInfo = new TaskCommand(OnShowSystemInfoExecute);
-            SavePackage = new Command(OnSavePackageExecute);
-        }        
+            SavePackage = new Command(OnSavePackageExecute, OnSavePackageCanExecute);
+        }
+
+        #region Properties
+        public bool IsCreatingPackage { get; set; }
+        #endregion
 
         #region Commands
         public Command SavePackage { get; private set; }
 
-        private void OnSavePackageExecute()
+        private bool OnSavePackageCanExecute()
         {
+            return !IsCreatingPackage;
+        }
+
+        private async void OnSavePackageExecute()
+        {
+            IsCreatingPackage = true;
+
             _saveFileService.Filter = "Zip files|*.zip";
+
             if (_saveFileService.DetermineFile())
             {
-                _supportPackageService.CreateSupportPackage(_saveFileService.FileName);
+                await _supportPackageService.CreateSupportPackage(_saveFileService.FileName);
             }
+
+            IsCreatingPackage = false;
         }
 
         public TaskCommand Screenshot { get; private set; }

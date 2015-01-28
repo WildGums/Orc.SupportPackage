@@ -18,26 +18,34 @@ namespace Orc.SupportPackage
     using SystemInfo;
     using Catel;
     using Catel.Collections;
+    using Catel.IoC;
     using Catel.Logging;
+    using Catel.Reflection;
     using Ionic.Zip;
     using Ionic.Zlib;
+    using MethodTimer;
 
     public class SupportPackageService : ISupportPackageService
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private readonly IScreenCaptureService _screenCaptureService;
+        private readonly ITypeFactory _typeFactory;
         private readonly ISystemInfoService _systemInfoService;
 
-        public SupportPackageService(ISystemInfoService systemInfoService, IScreenCaptureService screenCaptureService)
+        public SupportPackageService(ISystemInfoService systemInfoService, IScreenCaptureService screenCaptureService,
+            ITypeFactory typeFactory)
         {
             Argument.IsNotNull(() => systemInfoService);
             Argument.IsNotNull(() => screenCaptureService);
+            Argument.IsNotNull(() => typeFactory);
 
             _systemInfoService = systemInfoService;
             _screenCaptureService = screenCaptureService;
+            _typeFactory = typeFactory;
         }
 
+        [Time]
         public async Task<bool> CreateSupportPackage(string zipFileName)
         {
             Argument.IsNotNullOrEmpty(() => zipFileName);
@@ -48,14 +56,34 @@ namespace Orc.SupportPackage
             {
                 Log.Info("Creating support package");
 
-                using (var temporaryFilesContext = new TemporaryFilesContext())
+                using (var supportPackageContext = new SupportPackageContext())
                 {
-                    var systemInfoXmlFileName = temporaryFilesContext.GetFile("systeminfo.xml");
-                    var systemInfoTxtFileName = temporaryFilesContext.GetFile("systeminfo.txt");
+                    var systemInfoXmlFileName = supportPackageContext.GetFile("systeminfo.xml");
+                    var systemInfoTxtFileName = supportPackageContext.GetFile("systeminfo.txt");
                     await GetAndSaveSystemInformation(systemInfoXmlFileName, systemInfoTxtFileName);
 
-                    var screenshotFileName = temporaryFilesContext.GetFile("screenshot.jpg");
+                    var screenshotFileName = supportPackageContext.GetFile("screenshot.jpg");
                     await CaptureWindowAndSave(screenshotFileName);
+
+                    var supportPackageProviderTypes = (from type in TypeCache.GetTypes()
+                                                       where !type.IsAbstractEx() && type.IsClassEx() && 
+                                                             type.ImplementsInterfaceEx<ISupportPackageProvider>()
+                                                       select type).ToList();
+
+                    foreach (var supportPackageProviderType in supportPackageProviderTypes)
+                    {
+                        try
+                        {
+                            Log.Debug("Gathering support package info from '{0}'", supportPackageProviderType.FullName);
+
+                            var provider = (ISupportPackageProvider)_typeFactory.CreateInstance(supportPackageProviderType);
+                            await provider.Provide(supportPackageContext);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Warning(ex, "Failed to gather support package info from '{0}'. Info will be excluded from the package", supportPackageProviderType.FullName);
+                        }
+                    }
 
                     var applicationDataDirectory = Catel.IO.Path.GetApplicationDataDirectory();
 
@@ -64,9 +92,7 @@ namespace Orc.SupportPackage
                         zipFile.CompressionLevel = CompressionLevel.BestCompression;
 
                         zipFile.AddDirectory(applicationDataDirectory, "AppData");
-                        zipFile.AddFile(systemInfoXmlFileName, string.Empty);
-                        zipFile.AddFile(systemInfoTxtFileName, string.Empty);
-                        zipFile.AddFile(screenshotFileName, string.Empty);
+                        zipFile.AddDirectory(supportPackageContext.RootDirectory, string.Empty);
 
                         zipFile.Save(zipFileName);
                     }

@@ -48,6 +48,10 @@
     <Reference Include="Ionic.Zip">
       <HintPath>..\..\lib\DotNetZip.1.9.3\lib\net20\Ionic.Zip.dll</HintPath>
     </Reference>
+    <Reference Include="MethodTimer">
+      <HintPath>..\..\lib\MethodTimer.Fody.1.15.2.0\Lib\portable-net4+sl5+wp8+win8+wpa81+MonoAndroid16+MonoTouch40\MethodTimer.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Microsoft.Threading.Tasks">
       <HintPath>..\..\lib\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.dll</HintPath>
     </Reference>
@@ -88,8 +92,11 @@
     <Compile Include="..\SolutionAssemblyInfo.cs">
       <Link>Properties\SolutionAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Context\Interfaces\ISupportPackageContext.cs" />
     <Compile Include="Models\Rect.cs" />
-    <Compile Include="Helpers\TemporaryFilesContext.cs" />
+    <Compile Include="Context\SupportPackageContext.cs" />
+    <Compile Include="Providers\Interfaces\ISupportPackageProvider.cs" />
+    <Compile Include="Providers\SupportPackageProviderBase.cs" />
     <Compile Include="Win32\Gdi32.cs" />
     <Compile Include="ModuleInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -12,13 +12,13 @@ namespace Orc.SupportPackage
     using Catel.Logging;
     using Catel.Reflection;
 
-    public class TemporaryFilesContext : IDisposable
+    public class SupportPackageContext : IDisposable, ISupportPackageContext
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private readonly string _rootDirectory;
 
-        public TemporaryFilesContext()
+        public SupportPackageContext()
         {
             var assembly = AssemblyHelper.GetEntryAssembly();
 
@@ -27,6 +27,8 @@ namespace Orc.SupportPackage
 
             Directory.CreateDirectory(_rootDirectory);
         }
+
+        public string RootDirectory { get { return _rootDirectory; } }
 
         public string GetDirectory(string relativeDirectoryName)
         {
