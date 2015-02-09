@@ -75,8 +75,8 @@ namespace Orc.SupportPackage.ViewModels
         /// </summary>
         private async void OnCreateSupportPackageExecute()
         {
-            _saveFileService.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), string.Format("{0} support package.zip", _assemblyTitle));
-            _saveFileService.Filter = "Zip files|*.zip";
+            _saveFileService.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), string.Format("{0}_{1}.spkg", _assemblyTitle, DateTime.Now.ToString("yyyyMMdd_HHmmss")));
+            _saveFileService.Filter = "Support package files|*.spkg";
 
             if (_saveFileService.DetermineFile())
             {
