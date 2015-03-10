@@ -50,9 +50,9 @@ namespace Orc.SupportPackage.Example.ViewModels
         #region Commands
         public Command SavePackage { get; private set; }
 
-        private async void OnSavePackageExecute()
+        private void OnSavePackageExecute()
         {
-            await _uiVisualizerService.ShowDialog<SupportPackageViewModel>();
+            _uiVisualizerService.ShowDialog<SupportPackageViewModel>();
         }
 
         public TaskCommand Screenshot { get; private set; }
