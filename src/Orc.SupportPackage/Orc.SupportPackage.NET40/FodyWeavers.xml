@@ -8,6 +8,6 @@
     </IncludeAssemblies>
   </Costura>
   <MethodTimer/>
-  <LoadAssembliesOnStartup/>
   <Catel/>
+  <LoadAssembliesOnStartup/>
 </Weavers>
