@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>430e4eb9-fb32-4173-b4da-a0b63fcd6931</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Orc.SupportPackage.Shared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\SolutionAssemblyInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Context\Interfaces\ISupportPackageContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Context\SupportPackageContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Rect.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ModuleInitializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Properties\AssemblyInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Providers\Interfaces\ISupportPackageProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Providers\SupportPackageProviderBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Interfaces\IScreenCaptureService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Interfaces\ISupportPackageService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\ScreenCaptureService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SupportPackageService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Win32\Gdi32.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Win32\User32.cs" />
+  </ItemGroup>
+</Project>

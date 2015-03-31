@@ -152,13 +152,13 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Orc.SupportPackage.Xaml\Orc.SupportPackage.Xaml.csproj">
+    <ProjectReference Include="..\Orc.SupportPackage.Xaml\Orc.SupportPackage.Xaml.NET40\Orc.SupportPackage.Xaml.NET40.csproj">
       <Project>{eb42184d-adff-4f2f-a9c1-2dd5472f26d3}</Project>
-      <Name>Orc.SupportPackage.Xaml</Name>
+      <Name>Orc.SupportPackage.Xaml.NET40</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Orc.SupportPackage\Orc.SupportPackage.csproj">
+    <ProjectReference Include="..\Orc.SupportPackage\Orc.SupportPackage.NET40\Orc.SupportPackage.NET40.csproj">
       <Project>{31ce78ce-896e-43b5-ae7e-a6a4b9944aa4}</Project>
-      <Name>Orc.SupportPackage</Name>
+      <Name>Orc.SupportPackage.NET40</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
