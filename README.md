@@ -1,5 +1,7 @@
 # Orc.SupportPackage
 
+[![Join the chat at https://gitter.im/WildGums/Orc.SupportPackage](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/WildGums/Orc.SupportPackage?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Creates support packages of software by gathering relevant information.
 
 # Quick introduction
