@@ -13,7 +13,7 @@ Below is an overview of the most important components:
 - **ISupportPackageService** => the support package service
 - **ISupportPackageProvider** => add custom files / folders to the support package- 
 
-# Creating a suppport package
+# Creating a support package
 
 By default the support package service gathers system info (using Orc.SystemInfo) and the %AppData% folder of the current user. To create a support package, use the following code:
 
