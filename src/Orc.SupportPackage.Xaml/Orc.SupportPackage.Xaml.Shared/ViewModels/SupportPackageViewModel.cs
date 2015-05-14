@@ -9,7 +9,6 @@ namespace Orc.SupportPackage.ViewModels
 {
     using System;
     using System.IO;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Catel;
     using Catel.MVVM;
@@ -18,12 +17,15 @@ namespace Orc.SupportPackage.ViewModels
 
     public class SupportPackageViewModel : ViewModelBase
     {
-        private readonly ISaveFileService _saveFileService;
-        private readonly ISupportPackageService _supportPackageService;
+        #region Fields
+        private readonly string _assemblyTitle;
         private readonly IPleaseWaitService _pleaseWaitService;
         private readonly IProcessService _processService;
-
-        private readonly string _assemblyTitle;
+        private readonly ISaveFileService _saveFileService;
+        private readonly ISupportPackageService _supportPackageService;
+        private bool _isCreatingSupportPackage;
+        private bool _isSupportPackageCreated;
+        #endregion
 
         #region Constructors
         public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageService supportPackageService,
@@ -50,9 +52,19 @@ namespace Orc.SupportPackage.ViewModels
         #endregion
 
         #region Properties
-        public bool IsCreatingSupportPackage { get; private set; }
-
         public string LastSupportPackageFileName { get; private set; }
+        #endregion
+
+        #region Methods
+        protected override async Task Initialize()
+        {
+            await base.Initialize();
+        }
+
+        protected override async Task Close()
+        {
+            await base.Close();
+        }
         #endregion
 
         #region Commands
@@ -67,7 +79,7 @@ namespace Orc.SupportPackage.ViewModels
         /// <returns><c>true</c> if the command can be executed; otherwise <c>false</c></returns>
         private bool OnCreateSupportPackageCanExecute()
         {
-            return !IsCreatingSupportPackage;
+            return !_isCreatingSupportPackage && !_isSupportPackageCreated;
         }
 
         /// <summary>
@@ -82,16 +94,17 @@ namespace Orc.SupportPackage.ViewModels
             {
                 var fileName = _saveFileService.FileName;
 
-                IsCreatingSupportPackage = true;
+                using (new DisposableToken(null, x => _isCreatingSupportPackage = true, x => _isCreatingSupportPackage = false))
+                {
+                    _pleaseWaitService.Push();
 
-                _pleaseWaitService.Push();
+                    await _supportPackageService.CreateSupportPackage(fileName);
+                    LastSupportPackageFileName = fileName;
 
-                await _supportPackageService.CreateSupportPackage(fileName);
-                LastSupportPackageFileName = fileName;
+                    _pleaseWaitService.Pop();
+                }
 
-                _pleaseWaitService.Pop();
-
-                IsCreatingSupportPackage = false;
+                _isSupportPackageCreated = true;
             }
         }
 
@@ -116,18 +129,6 @@ namespace Orc.SupportPackage.ViewModels
         {
             var directory = Path.GetDirectoryName(LastSupportPackageFileName);
             _processService.StartProcess(directory);
-        }
-        #endregion
-
-        #region Methods
-        protected override async Task Initialize()
-        {
-            await base.Initialize();
-        }
-
-        protected override async Task Close()
-        {
-            await base.Close();
         }
         #endregion
     }
