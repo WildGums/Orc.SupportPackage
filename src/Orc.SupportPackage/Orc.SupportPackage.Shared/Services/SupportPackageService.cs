@@ -108,7 +108,7 @@ namespace Orc.SupportPackage
             catch (Exception ex)
             {
                 result = false;
-                Log.ErrorWithData(ex, "Error while creating support package");
+                Log.Error(ex, "Error while creating support package");
             }
 
             return result;
