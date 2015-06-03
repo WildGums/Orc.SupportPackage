@@ -14,6 +14,7 @@ namespace Orc.SupportPackage
     using System.Windows.Interop;
 
     using Catel;
+    using Catel.Threading;
 
     public class ScreenCaptureService : IScreenCaptureService
     {
@@ -26,9 +27,9 @@ namespace Orc.SupportPackage
             return await CaptureWindowImageByHandle(windowHandle);
         }
 
-        private async Task<Image> CaptureWindowImageByHandle(IntPtr handle)
+        private Task<Image> CaptureWindowImageByHandle(IntPtr handle)
         {
-            return await Task.Factory.StartNew(() =>
+            return TaskHelper.Run(() =>
             {
                 var windowRect = GetWindowRect(handle);
                 var width = windowRect.right - windowRect.left;

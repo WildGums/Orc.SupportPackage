@@ -22,6 +22,7 @@ namespace Orc.SupportPackage
     using Catel.IoC;
     using Catel.Logging;
     using Catel.Reflection;
+    using Catel.Threading;
     using Ionic.Zip;
     using Ionic.Zlib;
     using MethodTimer;
@@ -75,7 +76,7 @@ namespace Orc.SupportPackage
                     {
                         try
                         {
-                            await Task.Factory.StartNew(() =>
+                            await TaskHelper.Run(() =>
                             {
                                 Log.Debug("Gathering support package info from '{0}'", supportPackageProviderType.FullName);
 
