@@ -8,12 +8,11 @@
 namespace Orc.SupportPackage.Example
 {
     using System.IO;
-    using System.Threading.Tasks;
     using Catel;
 
     public class CustomSupportPackageProvider : SupportPackageProviderBase
     {
-        public override async Task Provide(ISupportPackageContext supportPackageContext)
+        public override void Provide(ISupportPackageContext supportPackageContext)
         {
             Argument.IsNotNull(() => supportPackageContext);
 

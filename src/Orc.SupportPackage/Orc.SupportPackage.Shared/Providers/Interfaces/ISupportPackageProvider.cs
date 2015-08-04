@@ -7,10 +7,8 @@
 
 namespace Orc.SupportPackage
 {
-    using System.Threading.Tasks;
-
     public interface ISupportPackageProvider
     {
-        Task Provide(ISupportPackageContext supportPackageContext);
+        void Provide(ISupportPackageContext supportPackageContext);
     }
 }
