@@ -8,11 +8,10 @@
 namespace Orc.SupportPackage
 {
     using System.Drawing;
-    using System.Threading.Tasks;
     using System.Windows;
 
     public interface IScreenCaptureService
     {
-        Task<Image> CaptureWindowImage(Window window);
+        Image CaptureWindowImage(Window window);
     }
 }

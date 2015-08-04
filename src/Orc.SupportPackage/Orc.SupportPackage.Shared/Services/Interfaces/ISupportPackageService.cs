@@ -7,10 +7,8 @@
 
 namespace Orc.SupportPackage
 {
-    using System.Threading.Tasks;
-
     public interface ISupportPackageService
     {
-        Task<bool> CreateSupportPackage(string zipFileName);
+        bool CreateSupportPackage(string zipFileName);
     }
 }

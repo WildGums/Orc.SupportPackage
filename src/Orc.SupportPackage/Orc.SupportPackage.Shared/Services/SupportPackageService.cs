@@ -48,7 +48,7 @@ namespace Orc.SupportPackage
         }
 
         [Time]
-        public async Task<bool> CreateSupportPackage(string zipFileName)
+        public bool CreateSupportPackage(string zipFileName)
         {
             Argument.IsNotNullOrEmpty(() => zipFileName);
 
@@ -62,10 +62,10 @@ namespace Orc.SupportPackage
                 {
                     var systemInfoXmlFileName = supportPackageContext.GetFile("systeminfo.xml");
                     var systemInfoTxtFileName = supportPackageContext.GetFile("systeminfo.txt");
-                    await GetAndSaveSystemInformation(systemInfoXmlFileName, systemInfoTxtFileName);
+                    GetAndSaveSystemInformation(systemInfoXmlFileName, systemInfoTxtFileName);
 
                     var screenshotFileName = supportPackageContext.GetFile("screenshot.jpg");
-                    await CaptureWindowAndSave(screenshotFileName);
+                    CaptureWindowAndSave(screenshotFileName);
 
                     var supportPackageProviderTypes = (from type in TypeCache.GetTypes()
                                                        where !type.IsAbstractEx() && type.IsClassEx() &&
@@ -76,14 +76,10 @@ namespace Orc.SupportPackage
                     {
                         try
                         {
-                            await TaskHelper.Run(() =>
-                            {
-                                Log.Debug("Gathering support package info from '{0}'", supportPackageProviderType.FullName);
+                            Log.Debug("Gathering support package info from '{0}'", supportPackageProviderType.FullName);
 
-                                var provider = (ISupportPackageProvider)_typeFactory.CreateInstance(supportPackageProviderType);
-                                var task = provider.Provide(supportPackageContext);
-                                task.Wait();
-                            });
+                            var provider = (ISupportPackageProvider)_typeFactory.CreateInstance(supportPackageProviderType);
+                            provider.Provide(supportPackageContext);
                         }
                         catch (Exception ex)
                         {
@@ -115,21 +111,21 @@ namespace Orc.SupportPackage
             return result;
         }
 
-        private async Task CaptureWindowAndSave(string screenshotFile)
+        private void CaptureWindowAndSave(string screenshotFile)
         {
             Argument.IsNotNullOrEmpty(() => screenshotFile);
 
             var mainWindow = Application.Current.MainWindow;
-            var image = await _screenCaptureService.CaptureWindowImage(mainWindow);
+            var image = _screenCaptureService.CaptureWindowImage(mainWindow);
             image.Save(screenshotFile, ImageFormat.Jpeg);
         }
 
-        private async Task GetAndSaveSystemInformation(string xmlFileName, string textFileName)
+        private void GetAndSaveSystemInformation(string xmlFileName, string textFileName)
         {
             Argument.IsNotNullOrEmpty(() => xmlFileName);
             Argument.IsNotNullOrEmpty(() => textFileName);
 
-            var systemInfo = await _systemInfoService.GetSystemInfo();
+            var systemInfo = _systemInfoService.GetSystemInfo();
 
             // Xml
             var serializer = new XmlSerializer(systemInfo.GetType());

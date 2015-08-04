@@ -9,36 +9,30 @@ namespace Orc.SupportPackage
 {
     using System;
     using System.Drawing;
-    using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Interop;
-
     using Catel;
-    using Catel.Threading;
 
     public class ScreenCaptureService : IScreenCaptureService
     {
-        public async Task<Image> CaptureWindowImage(Window window)
+        public Image CaptureWindowImage(Window window)
         {
             Argument.IsNotNull(() => window);
 
             var windowHandle = new WindowInteropHelper(window).Handle;
 
-            return await CaptureWindowImageByHandle(windowHandle);
+            return CaptureWindowImageByHandle(windowHandle);
         }
 
-        private Task<Image> CaptureWindowImageByHandle(IntPtr handle)
+        private Image CaptureWindowImageByHandle(IntPtr handle)
         {
-            return TaskHelper.Run(() =>
-            {
-                var windowRect = GetWindowRect(handle);
-                var width = windowRect.right - windowRect.left;
-                var height = windowRect.bottom - windowRect.top;
+            var windowRect = GetWindowRect(handle);
+            var width = windowRect.right - windowRect.left;
+            var height = windowRect.bottom - windowRect.top;
 
-                var img = GetImage(handle, width, height);
+            var img = GetImage(handle, width, height);
 
-                return img;
-            });
+            return img;
         }
 
         private static Image GetImage(IntPtr handle, int width, int height)

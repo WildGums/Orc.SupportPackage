@@ -19,6 +19,7 @@ namespace Orc.SupportPackage.Example.ViewModels
     using Catel.IoC;
     using Catel.MVVM;
     using Catel.Services;
+    using Catel.Threading;
     using SupportPackage.ViewModels;
 
     public class MainViewModel : ViewModelBase
@@ -42,8 +43,8 @@ namespace Orc.SupportPackage.Example.ViewModels
             _systemInfoService = systemInfoService;
             _uiVisualizerService = uiVisualizerService;
 
-            Screenshot = new TaskCommand(OnScreenshotExecute);
-            ShowSystemInfo = new TaskCommand(OnShowSystemInfoExecute);
+            Screenshot = new TaskCommand(OnScreenshotExecuteAsync);
+            ShowSystemInfo = new TaskCommand(OnShowSystemInfoExecuteAsync);
             SavePackage = new Command(OnSavePackageExecute);
         }
 
@@ -57,12 +58,12 @@ namespace Orc.SupportPackage.Example.ViewModels
 
         public TaskCommand Screenshot { get; private set; }
 
-        private async Task OnScreenshotExecute()
+        private async Task OnScreenshotExecuteAsync()
         {
             ScreenPic = null;
 
             var mainWindow = Application.Current.MainWindow;
-            var image = await _screenCaptureService.CaptureWindowImage(mainWindow);
+            var image = await TaskHelper.Run(() => _screenCaptureService.CaptureWindowImage(mainWindow));
             var applicationDataDirectory = Catel.IO.Path.GetApplicationDataDirectory();
             var filename = Path.Combine(applicationDataDirectory, string.Format("screenshot{0}.jpg", _screenshotIndex++));
             image.Save(filename, ImageFormat.Jpeg);
@@ -78,9 +79,9 @@ namespace Orc.SupportPackage.Example.ViewModels
 
         public TaskCommand ShowSystemInfo { get; private set; }
 
-        private async Task OnShowSystemInfoExecute()
+        private async Task OnShowSystemInfoExecuteAsync()
         {
-            var sysInfoElements = await _systemInfoService.GetSystemInfo();
+            var sysInfoElements = await TaskHelper.Run(() => _systemInfoService.GetSystemInfo());
             var sysInfoLines = sysInfoElements.Select(x => x.ToString());
             SystemInfo = String.Join("\n", sysInfoLines);
         }

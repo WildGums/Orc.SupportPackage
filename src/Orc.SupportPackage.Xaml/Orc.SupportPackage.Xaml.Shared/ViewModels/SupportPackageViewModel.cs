@@ -14,6 +14,7 @@ namespace Orc.SupportPackage.ViewModels
     using Catel.MVVM;
     using Catel.Reflection;
     using Catel.Services;
+    using Catel.Threading;
 
     public class SupportPackageViewModel : ViewModelBase
     {
@@ -46,7 +47,7 @@ namespace Orc.SupportPackage.ViewModels
 
             Title = string.Format("Create support package for {0}", _assemblyTitle);
 
-            CreateSupportPackage = new Command(OnCreateSupportPackageExecute, OnCreateSupportPackageCanExecute);
+            CreateSupportPackage = new TaskCommand(OnCreateSupportPackageExecuteAsync, OnCreateSupportPackageCanExecute);
             OpenDirectory = new Command(OnOpenDirectoryExecute, OnOpenDirectoryCanExecute);
         }
         #endregion
@@ -56,14 +57,14 @@ namespace Orc.SupportPackage.ViewModels
         #endregion
 
         #region Methods
-        protected override async Task Initialize()
+        protected override async Task InitializeAsync()
         {
-            await base.Initialize();
+            await base.InitializeAsync();
         }
 
-        protected override async Task Close()
+        protected override async Task CloseAsync()
         {
-            await base.Close();
+            await base.CloseAsync();
         }
         #endregion
 
@@ -71,7 +72,7 @@ namespace Orc.SupportPackage.ViewModels
         /// <summary>
         /// Gets the CreateSupportPackage command.
         /// </summary>
-        public Command CreateSupportPackage { get; private set; }
+        public TaskCommand CreateSupportPackage { get; private set; }
 
         /// <summary>
         /// Method to check whether the CreateSupportPackage command can be executed.
@@ -85,7 +86,7 @@ namespace Orc.SupportPackage.ViewModels
         /// <summary>
         /// Method to invoke when the CreateSupportPackage command is executed.
         /// </summary>
-        private async void OnCreateSupportPackageExecute()
+        private async Task OnCreateSupportPackageExecuteAsync()
         {
             _saveFileService.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), string.Format("{0}_{1}.spkg", _assemblyTitle, DateTime.Now.ToString("yyyyMMdd_HHmmss")));
             _saveFileService.Filter = "Support package files|*.spkg";
@@ -98,7 +99,7 @@ namespace Orc.SupportPackage.ViewModels
                 {
                     _pleaseWaitService.Push();
 
-                    await _supportPackageService.CreateSupportPackage(fileName);
+                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackage(fileName));
                     LastSupportPackageFileName = fileName;
 
                     _pleaseWaitService.Pop();
