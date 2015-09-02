@@ -127,8 +127,9 @@ namespace Orc.SupportPackage
             }
 
             var dispatcher = application.Dispatcher;
-            
+
 #pragma warning disable CS4014
+#pragma warning disable 1692
             dispatcher.BeginInvoke(new Action(() =>
             {
                 var mainWindow = application.MainWindow;
@@ -144,6 +145,7 @@ namespace Orc.SupportPackage
                 image.Save(screenshotFile, ImageFormat.Jpeg);
             }));
 #pragma warning restore CS4014
+#pragma warning restore 1692
         }
 
         private Task GetAndSaveSystemInformationAsync(string xmlFileName, string textFileName)
