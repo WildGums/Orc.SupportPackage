@@ -15,6 +15,7 @@ namespace Orc.SupportPackage
     using System.Text;
     using System.Threading.Tasks;
     using System.Windows;
+    using System.Windows.Threading;
     using System.Xml.Serialization;
     using SystemInfo;
     using Catel;
@@ -48,7 +49,7 @@ namespace Orc.SupportPackage
         }
 
         [Time]
-        public bool CreateSupportPackage(string zipFileName)
+        public async Task<bool> CreateSupportPackageAsync(string zipFileName)
         {
             Argument.IsNotNullOrEmpty(() => zipFileName);
 
@@ -60,12 +61,13 @@ namespace Orc.SupportPackage
 
                 using (var supportPackageContext = new SupportPackageContext())
                 {
+                    // Note: screenshot first, see remarks in screenshot method
+                    var screenshotFileName = supportPackageContext.GetFile("screenshot.jpg");
+                    await CaptureWindowAndSaveAsync(screenshotFileName);
+
                     var systemInfoXmlFileName = supportPackageContext.GetFile("systeminfo.xml");
                     var systemInfoTxtFileName = supportPackageContext.GetFile("systeminfo.txt");
-                    GetAndSaveSystemInformation(systemInfoXmlFileName, systemInfoTxtFileName);
-
-                    var screenshotFileName = supportPackageContext.GetFile("screenshot.jpg");
-                    CaptureWindowAndSave(screenshotFileName);
+                    await GetAndSaveSystemInformationAsync(systemInfoXmlFileName, systemInfoTxtFileName);
 
                     var supportPackageProviderTypes = (from type in TypeCache.GetTypes()
                                                        where !type.IsAbstractEx() && type.IsClassEx() &&
@@ -79,7 +81,7 @@ namespace Orc.SupportPackage
                             Log.Debug("Gathering support package info from '{0}'", supportPackageProviderType.FullName);
 
                             var provider = (ISupportPackageProvider)_typeFactory.CreateInstance(supportPackageProviderType);
-                            provider.Provide(supportPackageContext);
+                            await provider.ProvideAsync(supportPackageContext);
                         }
                         catch (Exception ex)
                         {
@@ -111,33 +113,62 @@ namespace Orc.SupportPackage
             return result;
         }
 
-        private void CaptureWindowAndSave(string screenshotFile)
+        private async Task CaptureWindowAndSaveAsync(string screenshotFile)
         {
             Argument.IsNotNullOrEmpty(() => screenshotFile);
 
-            var mainWindow = Application.Current.MainWindow;
-            var image = _screenCaptureService.CaptureWindowImage(mainWindow);
-            image.Save(screenshotFile, ImageFormat.Jpeg);
+            // Note: we cannot use InvokeAsync here because it might cause deadlocks. Therefore we just dispatcher and 
+            // hope it's ready before the package is created. Worst case it doesn't contain the screenshot.
+            var application = Application.Current;
+            if (application == null)
+            {
+                Log.Debug("Application.Current is null, cannot create screenshot");
+                return;
+            }
+
+            var dispatcher = application.Dispatcher;
+            
+#pragma warning disable CS4014
+            dispatcher.BeginInvoke(new Action(() =>
+            {
+                var mainWindow = application.MainWindow;
+                if (mainWindow == null)
+                {
+                    Log.Debug("Application.Current.MainWindow is null, cannot create screenshot");
+                    return;
+                }
+
+                Log.Debug("Creating screenshot for support package");
+
+                var image = _screenCaptureService.CaptureWindowImage(mainWindow);
+                image.Save(screenshotFile, ImageFormat.Jpeg);
+            }));
+#pragma warning restore CS4014
         }
 
-        private void GetAndSaveSystemInformation(string xmlFileName, string textFileName)
+        private Task GetAndSaveSystemInformationAsync(string xmlFileName, string textFileName)
         {
             Argument.IsNotNullOrEmpty(() => xmlFileName);
             Argument.IsNotNullOrEmpty(() => textFileName);
 
-            var systemInfo = _systemInfoService.GetSystemInfo();
-
-            // Xml
-            var serializer = new XmlSerializer(systemInfo.GetType());
-            using (var fileStream = new FileStream(xmlFileName, FileMode.OpenOrCreate))
+            return TaskHelper.Run(() =>
             {
-                serializer.Serialize(fileStream, systemInfo);
-            }
+                Log.Debug("Gathering system info for support package");
 
-            // Plain
-            var stringBuilder = new StringBuilder();
-            systemInfo.ForEach(x => stringBuilder.AppendLine(x.ToString()));
-            File.WriteAllText(textFileName, stringBuilder.ToString());
+                var systemInfo = _systemInfoService.GetSystemInfo();
+
+                // Xml
+                var serializer = new XmlSerializer(systemInfo.GetType());
+                using (var fileStream = new FileStream(xmlFileName, FileMode.OpenOrCreate))
+                {
+                    serializer.Serialize(fileStream, systemInfo);
+                }
+
+                // Plain
+                var stringBuilder = new StringBuilder();
+                systemInfo.ForEach(x => stringBuilder.AppendLine(x.ToString()));
+                File.WriteAllText(textFileName, stringBuilder.ToString());
+            }, true);
         }
     }
 }

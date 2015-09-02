@@ -45,15 +45,15 @@ namespace Orc.SupportPackage.Example.ViewModels
 
             Screenshot = new TaskCommand(OnScreenshotExecuteAsync);
             ShowSystemInfo = new TaskCommand(OnShowSystemInfoExecuteAsync);
-            SavePackage = new Command(OnSavePackageExecute);
+            SavePackage = new TaskCommand(OnSavePackageExecuteAsync);
         }
 
         #region Commands
-        public Command SavePackage { get; private set; }
+        public TaskCommand SavePackage { get; private set; }
 
-        private void OnSavePackageExecute()
+        private async Task OnSavePackageExecuteAsync()
         {
-            _uiVisualizerService.ShowDialog<SupportPackageViewModel>();
+            await _uiVisualizerService.ShowDialogAsync<SupportPackageViewModel>();
         }
 
         public TaskCommand Screenshot { get; private set; }
@@ -63,7 +63,7 @@ namespace Orc.SupportPackage.Example.ViewModels
             ScreenPic = null;
 
             var mainWindow = Application.Current.MainWindow;
-            var image = await TaskHelper.Run(() => _screenCaptureService.CaptureWindowImage(mainWindow), true);
+            var image = _screenCaptureService.CaptureWindowImage(mainWindow);
             var applicationDataDirectory = Catel.IO.Path.GetApplicationDataDirectory();
             var filename = Path.Combine(applicationDataDirectory, string.Format("screenshot{0}.jpg", _screenshotIndex++));
             image.Save(filename, ImageFormat.Jpeg);
@@ -83,7 +83,7 @@ namespace Orc.SupportPackage.Example.ViewModels
         {
             var sysInfoElements = await TaskHelper.Run(() => _systemInfoService.GetSystemInfo(), true);
             var sysInfoLines = sysInfoElements.Select(x => x.ToString());
-            SystemInfo = String.Join("\n", sysInfoLines);
+            SystemInfo = string.Join("\n", sysInfoLines);
         }
         #endregion
 

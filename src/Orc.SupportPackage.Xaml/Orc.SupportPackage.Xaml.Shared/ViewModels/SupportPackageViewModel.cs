@@ -95,14 +95,18 @@ namespace Orc.SupportPackage.ViewModels
             {
                 var fileName = _saveFileService.FileName;
 
-                using (new DisposableToken(null, x => _isCreatingSupportPackage = true, x => _isCreatingSupportPackage = false))
+                using (new DisposableToken(null, x =>
                 {
+                    _isCreatingSupportPackage = true;
                     _pleaseWaitService.Push();
-
-                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackage(fileName), true);
-                    LastSupportPackageFileName = fileName;
-
+                }, x =>
+                {
                     _pleaseWaitService.Pop();
+                    _isCreatingSupportPackage = false;
+                }))
+                {
+                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName), true);
+                    LastSupportPackageFileName = fileName;
                 }
 
                 _isSupportPackageCreated = true;

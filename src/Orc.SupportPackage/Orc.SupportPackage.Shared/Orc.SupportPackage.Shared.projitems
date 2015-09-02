@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\SolutionAssemblyInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Context\Interfaces\ISupportPackageContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Context\SupportPackageContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DispatcherExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Rect.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ModuleInitializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Properties\AssemblyInfo.cs" />
