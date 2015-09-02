@@ -63,7 +63,7 @@ namespace Orc.SupportPackage.Example.ViewModels
             ScreenPic = null;
 
             var mainWindow = Application.Current.MainWindow;
-            var image = await TaskHelper.Run(() => _screenCaptureService.CaptureWindowImage(mainWindow));
+            var image = await TaskHelper.Run(() => _screenCaptureService.CaptureWindowImage(mainWindow), true);
             var applicationDataDirectory = Catel.IO.Path.GetApplicationDataDirectory();
             var filename = Path.Combine(applicationDataDirectory, string.Format("screenshot{0}.jpg", _screenshotIndex++));
             image.Save(filename, ImageFormat.Jpeg);
@@ -81,7 +81,7 @@ namespace Orc.SupportPackage.Example.ViewModels
 
         private async Task OnShowSystemInfoExecuteAsync()
         {
-            var sysInfoElements = await TaskHelper.Run(() => _systemInfoService.GetSystemInfo());
+            var sysInfoElements = await TaskHelper.Run(() => _systemInfoService.GetSystemInfo(), true);
             var sysInfoLines = sysInfoElements.Select(x => x.ToString());
             SystemInfo = String.Join("\n", sysInfoLines);
         }

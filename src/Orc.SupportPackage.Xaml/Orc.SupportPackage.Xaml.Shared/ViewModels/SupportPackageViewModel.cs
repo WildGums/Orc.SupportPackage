@@ -99,7 +99,7 @@ namespace Orc.SupportPackage.ViewModels
                 {
                     _pleaseWaitService.Push();
 
-                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackage(fileName));
+                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackage(fileName), true);
                     LastSupportPackageFileName = fileName;
 
                     _pleaseWaitService.Pop();
