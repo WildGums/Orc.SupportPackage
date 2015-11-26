@@ -1,5 +1,6 @@
 ﻿using Catel.IoC;
-
+using Catel.Services;
+using Catel.Services.Models;
 using Orc.SupportPackage;
 
 /// <summary>
@@ -16,5 +17,8 @@ public static class ModuleInitializer
 
         serviceLocator.RegisterType<ISupportPackageService, SupportPackageService>();
         serviceLocator.RegisterType<IScreenCaptureService, ScreenCaptureService>();
+
+        var languageService = serviceLocator.ResolveType<ILanguageService>();
+        languageService.RegisterLanguageSource(new LanguageResourceSource("Orc.SupportPackage", "Orc.SupportPackage.Properties", "Resources"));
     }
 }
