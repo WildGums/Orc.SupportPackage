@@ -22,6 +22,7 @@ namespace Orc.SupportPackage.ViewModels
         private readonly string _assemblyTitle;
         private readonly IPleaseWaitService _pleaseWaitService;
         private readonly IProcessService _processService;
+        private readonly ILanguageService _languageService;
         private readonly ISaveFileService _saveFileService;
         private readonly ISupportPackageService _supportPackageService;
         private bool _isCreatingSupportPackage;
@@ -30,22 +31,24 @@ namespace Orc.SupportPackage.ViewModels
 
         #region Constructors
         public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageService supportPackageService,
-            IPleaseWaitService pleaseWaitService, IProcessService processService)
+            IPleaseWaitService pleaseWaitService, IProcessService processService, ILanguageService languageService)
         {
             Argument.IsNotNull(() => saveFileService);
             Argument.IsNotNull(() => supportPackageService);
             Argument.IsNotNull(() => pleaseWaitService);
             Argument.IsNotNull(() => processService);
+            Argument.IsNotNull(() => languageService);
 
             _saveFileService = saveFileService;
             _supportPackageService = supportPackageService;
             _pleaseWaitService = pleaseWaitService;
             _processService = processService;
+            _languageService = languageService;
 
             var assembly = AssemblyHelper.GetEntryAssembly();
             _assemblyTitle = assembly.Title();
 
-            Title = string.Format("Create support package for {0}", _assemblyTitle);
+            Title = string.Format(languageService.GetString("SupportPackage_CreateSupportPackage"), _assemblyTitle);
 
             CreateSupportPackage = new TaskCommand(OnCreateSupportPackageExecuteAsync, OnCreateSupportPackageCanExecute);
             OpenDirectory = new Command(OnOpenDirectoryExecute, OnOpenDirectoryCanExecute);
@@ -89,7 +92,7 @@ namespace Orc.SupportPackage.ViewModels
         private async Task OnCreateSupportPackageExecuteAsync()
         {
             _saveFileService.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), string.Format("{0}_{1}.spkg", _assemblyTitle, DateTime.Now.ToString("yyyyMMdd_HHmmss")));
-            _saveFileService.Filter = "Support package files|*.spkg";
+            _saveFileService.Filter = string.Format("{0}|*.spkg", _languageService.GetString("SupportPackage_SupportPackageFiles"));
 
             if (_saveFileService.DetermineFile())
             {

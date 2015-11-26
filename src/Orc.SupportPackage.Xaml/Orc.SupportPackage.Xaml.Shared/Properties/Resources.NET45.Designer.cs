@@ -59,5 +59,68 @@ namespace Orc.SupportPackage.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create support package for {0}.
+        /// </summary>
+        internal static string SupportPackage_CreateSupportPackage {
+            get {
+                return ResourceManager.GetString("SupportPackage_CreateSupportPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Here you can create a support package. The support package will contain information that might help support engineers to analyze any possible issues..
+        /// </summary>
+        internal static string SupportPackage_Explanation_01 {
+            get {
+                return ResourceManager.GetString("SupportPackage_Explanation_01", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Depending on the amount of information to gather, this operation can take several seconds to a few minutes. Please be patient while the support package is being created..
+        /// </summary>
+        internal static string SupportPackage_Explanation_02 {
+            get {
+                return ResourceManager.GetString("SupportPackage_Explanation_02", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Note that support packages might contain sensitive information so make sure you only share this information with a support engineer..
+        /// </summary>
+        internal static string SupportPackage_Explanation_03 {
+            get {
+                return ResourceManager.GetString("SupportPackage_Explanation_03", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to I understand, create the support package.
+        /// </summary>
+        internal static string SupportPackage_IUnderstandCreateSupportPackage {
+            get {
+                return ResourceManager.GetString("SupportPackage_IUnderstandCreateSupportPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open directory.
+        /// </summary>
+        internal static string SupportPackage_OpenDirectory {
+            get {
+                return ResourceManager.GetString("SupportPackage_OpenDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Support package files.
+        /// </summary>
+        internal static string SupportPackage_SupportPackageFiles {
+            get {
+                return ResourceManager.GetString("SupportPackage_SupportPackageFiles", resourceCulture);
+            }
+        }
     }
 }
