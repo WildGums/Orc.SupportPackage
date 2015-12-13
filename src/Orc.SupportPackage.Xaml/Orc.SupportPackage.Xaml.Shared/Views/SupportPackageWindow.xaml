@@ -16,23 +16,18 @@
         </Grid.ColumnDefinitions>
         
         <Label Grid.Row="0" Grid.Column="0">
-            <TextBlock TextWrapping="Wrap">
-                Here you can create a support package. The support package will contain information that might
-                help support engineers to analyze any possible issues.
-                <LineBreak /><LineBreak />
-                Depending on the amount of information to gather, this operation can take several seconds to a few minutes. Please
-                be patient while the support package is being created.
-                <LineBreak /><LineBreak />
-                Note that support packages might contain sensitive information so make sure you only share this information
-                with a support engineer.
-            </TextBlock>
+            <StackPanel>
+                <TextBlock Text="{catel:LanguageBinding SupportPackage_Explanation_01}" TextWrapping="Wrap" Margin="0,0,0,12" />
+                <TextBlock Text="{catel:LanguageBinding SupportPackage_Explanation_02}" TextWrapping="Wrap" Margin="0,0,0,12" />
+                <TextBlock Text="{catel:LanguageBinding SupportPackage_Explanation_03}" TextWrapping="Wrap" />
+            </StackPanel>
         </Label>
 
         <Button Grid.Row="1" Grid.Column="0" Command="{Binding CreateSupportPackage}" 
-                Content="I understand, create the support package" Margin="6" Padding="4" />
+                Content="{catel:LanguageBinding SupportPackage_IUnderstandCreateSupportPackage}" Margin="6" Padding="4" />
 
         <Button Grid.Row="2" Grid.Column="0" Command="{Binding OpenDirectory}" 
-                Content="Open directory" Margin="6" Padding="4" />
+                Content="{catel:LanguageBinding SupportPackage_OpenDirectory}" Margin="6" Padding="4" />
     </Grid>
     
 </catel:DataWindow>
