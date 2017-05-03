@@ -46,6 +46,8 @@ namespace Orc.SupportPackage.Example.ViewModels
             Screenshot = new TaskCommand(OnScreenshotExecuteAsync);
             ShowSystemInfo = new TaskCommand(OnShowSystemInfoExecuteAsync);
             SavePackage = new TaskCommand(OnSavePackageExecuteAsync);
+
+            Title = "Orc.SupportPackage example";
         }
 
         #region Commands
