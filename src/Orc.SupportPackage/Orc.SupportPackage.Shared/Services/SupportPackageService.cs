@@ -8,14 +8,13 @@
 namespace Orc.SupportPackage
 {
     using System;
-    using System.Collections.Generic;
     using System.Drawing.Imaging;
     using System.IO;
     using System.Linq;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Windows;
-    using System.Windows.Threading;
     using System.Xml.Serialization;
     using SystemInfo;
     using Catel;
@@ -48,8 +47,13 @@ namespace Orc.SupportPackage
             _typeFactory = typeFactory;
         }
 
+        public Task<bool> CreateSupportPackageAsync(string zipFileName)
+        {
+           return CreateSupportPackageAsync(zipFileName, null);
+        }
+
         [Time]
-        public async Task<bool> CreateSupportPackageAsync(string zipFileName)
+        public async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] excludeFileNamePatterns)
         {
             Argument.IsNotNullOrEmpty(() => zipFileName);
 
@@ -97,6 +101,22 @@ namespace Orc.SupportPackage
 
                         zipFile.AddDirectory(applicationDataDirectory, "AppData");
                         zipFile.AddDirectory(supportPackageContext.RootDirectory, string.Empty);
+
+                        if (excludeFileNamePatterns != null && excludeFileNamePatterns.Length > 0)
+                        {
+                            Log.Info("Removing excluded files..");
+
+                            var excludeFileNameRegexes = excludeFileNamePatterns.Select(s => new Regex(s.Replace("*", ".*").Replace(".", "\\.") + "$", RegexOptions.IgnoreCase | RegexOptions.Compiled)).ToList();
+
+                            var zipEntries = zipFile.Entries.ToList();
+                            foreach (var zipEntry in zipEntries)
+                            {
+                                if (excludeFileNameRegexes.Any(regex => regex.IsMatch(zipEntry.FileName)))
+                                {
+                                    zipFile.RemoveEntry(zipEntry);
+                                }
+                            }
+                        }
 
                         zipFile.Save(zipFileName);
                     }
