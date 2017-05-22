@@ -8,7 +8,9 @@
 namespace Orc.SupportPackage.ViewModels
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
     using Catel;
     using Catel.MVVM;
@@ -52,11 +54,25 @@ namespace Orc.SupportPackage.ViewModels
 
             CreateSupportPackage = new TaskCommand(OnCreateSupportPackageExecuteAsync, OnCreateSupportPackageCanExecute);
             OpenDirectory = new Command(OnOpenDirectoryExecute, OnOpenDirectoryCanExecute);
+
+            SupportPackageFileTypes = new List<SupportPackageFileType>
+            {
+                new SupportPackageFileType(languageService.GetString("SupportPackage_SupportPackageFileType_SystemInformation_Title"), new[] {"systeminfo.xml", "systeminfo.txt"}),
+                new SupportPackageFileType(languageService.GetString("SupportPackage_SupportPackageFileType_ExecutableFiles_Title"), new[] {"*.exe", "*.dll"}, false),
+                new SupportPackageFileType(languageService.GetString("SupportPackage_SupportPackageFileType_ConfigurationFiles_Title"), new[] {"*.config"}),
+                new SupportPackageFileType(languageService.GetString("SupportPackage_SupportPackageFileType_LogFiles_Title"), new[] {"*.log"}),
+                new SupportPackageFileType(languageService.GetString("SupportPackage_SupportPackageFileType_TextFiles_Title"), new[] {"*.txt"}),
+                new SupportPackageFileType(languageService.GetString("SupportPackage_SupportPackageFileType_ImageFiles_Title"), new[] {"*.jpg", "*.bmp"})
+            };
+
         }
         #endregion
 
         #region Properties
         public string LastSupportPackageFileName { get; private set; }
+
+        public List<SupportPackageFileType> SupportPackageFileTypes { get; }
+
         #endregion
 
         #region Methods
@@ -108,7 +124,16 @@ namespace Orc.SupportPackage.ViewModels
                     _isCreatingSupportPackage = false;
                 }))
                 {
-                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName), true);
+                    var excludeFileNamePatterns = new List<string>();
+                    foreach (var supportPackageFileType in SupportPackageFileTypes)
+                    {
+                        if (!supportPackageFileType.IncludeInSupportPackage)
+                        {
+                            excludeFileNamePatterns.AddRange(supportPackageFileType.FileNamePatterns);
+                        }
+                    }
+
+                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, excludeFileNamePatterns.Distinct().ToArray()), true);
                     LastSupportPackageFileName = fileName;
                 }
 
