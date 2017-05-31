@@ -7,7 +7,7 @@
     <ProjectGuid>{0FB8EDF8-36CE-4D40-AB34-FABB704EBF67}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Orc.SupportPackage.Xaml</RootNamespace>
+    <RootNamespace>Orc.SupportPackage</RootNamespace>
     <AssemblyName>Orc.SupportPackage.Xaml</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
