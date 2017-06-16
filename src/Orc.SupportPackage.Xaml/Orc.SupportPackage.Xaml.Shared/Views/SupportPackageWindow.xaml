@@ -9,6 +9,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         
         <Grid.ColumnDefinitions>
@@ -23,10 +24,18 @@
             </StackPanel>
         </Label>
 
-        <Button Grid.Row="1" Grid.Column="0" Command="{Binding CreateSupportPackage}" 
-                Content="{catel:LanguageBinding SupportPackage_IUnderstandCreateSupportPackage}" Margin="6" Padding="4" />
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding SupportPackageFileTypes}" IsEnabled="{Binding ElementName=CreateSupportPackageButton, Path=IsEnabled}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <CheckBox IsChecked="{Binding IncludeInSupportPackage}" Content="{Binding Title}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
-        <Button Grid.Row="2" Grid.Column="0" Command="{Binding OpenDirectory}" 
+        <Button Grid.Row="2" Grid.Column="0" Command="{Binding CreateSupportPackage}" 
+                Content="{catel:LanguageBinding SupportPackage_IUnderstandCreateSupportPackage}" Margin="6" Padding="4" x:Name="CreateSupportPackageButton" />
+
+        <Button Grid.Row="3" Grid.Column="0" Command="{Binding OpenDirectory}" 
                 Content="{catel:LanguageBinding SupportPackage_OpenDirectory}" Margin="6" Padding="4" />
     </Grid>
     

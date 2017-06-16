@@ -122,5 +122,59 @@ namespace Orc.SupportPackage.Properties {
                 return ResourceManager.GetString("SupportPackage_SupportPackageFiles", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configuration files.
+        /// </summary>
+        internal static string SupportPackage_SupportPackageFileType_ConfigurationFiles_Title {
+            get {
+                return ResourceManager.GetString("SupportPackage_SupportPackageFileType_ConfigurationFiles_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Executable files.
+        /// </summary>
+        internal static string SupportPackage_SupportPackageFileType_ExecutableFiles_Title {
+            get {
+                return ResourceManager.GetString("SupportPackage_SupportPackageFileType_ExecutableFiles_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Image files.
+        /// </summary>
+        internal static string SupportPackage_SupportPackageFileType_ImageFiles_Title {
+            get {
+                return ResourceManager.GetString("SupportPackage_SupportPackageFileType_ImageFiles_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Log files.
+        /// </summary>
+        internal static string SupportPackage_SupportPackageFileType_LogFiles_Title {
+            get {
+                return ResourceManager.GetString("SupportPackage_SupportPackageFileType_LogFiles_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to System information.
+        /// </summary>
+        internal static string SupportPackage_SupportPackageFileType_SystemInformation_Title {
+            get {
+                return ResourceManager.GetString("SupportPackage_SupportPackageFileType_SystemInformation_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Text files.
+        /// </summary>
+        internal static string SupportPackage_SupportPackageFileType_TextFiles_Title {
+            get {
+                return ResourceManager.GetString("SupportPackage_SupportPackageFileType_TextFiles_Title", resourceCulture);
+            }
+        }
     }
 }

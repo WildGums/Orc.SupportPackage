@@ -138,4 +138,22 @@
   <data name="SupportPackage_SupportPackageFiles" xml:space="preserve">
     <value>Support package files</value>
   </data>
+  <data name="SupportPackage_SupportPackageFileType_SystemInformation_Title" xml:space="preserve">
+    <value>System information</value>
+  </data>
+    <data name="SupportPackage_SupportPackageFileType_ExecutableFiles_Title" xml:space="preserve">
+      <value>Executable files</value>
+  </data>
+    <data name="SupportPackage_SupportPackageFileType_ConfigurationFiles_Title" xml:space="preserve">
+      <value>Configuration files</value>
+  </data>
+    <data name="SupportPackage_SupportPackageFileType_LogFiles_Title" xml:space="preserve">
+      <value>Log files</value>
+  </data>
+    <data name="SupportPackage_SupportPackageFileType_TextFiles_Title" xml:space="preserve">
+      <value>Text files</value>
+  </data>
+    <data name="SupportPackage_SupportPackageFileType_ImageFiles_Title" xml:space="preserve">
+      <value>Image files</value>
+  </data>
 </root>
