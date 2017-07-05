@@ -11,11 +11,15 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)..\..\SolutionAssemblyInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\GlobalSuppressions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SupportPackageDirectory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SupportPackageFileSystemArtifact.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ModuleInitializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)Models\SupportPackageFileType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SupportPackageFileNamePattern.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultSupportPackageContentProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Providers\Interfaces\ISupportPackageContentProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\SupportPackageViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\SupportPackageWindow.xaml.cs">
       <DependentUpon>SupportPackageWindow.xaml</DependentUpon>
@@ -28,6 +32,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Models\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Providers\Interfaces\" />
   </ItemGroup>
 </Project>

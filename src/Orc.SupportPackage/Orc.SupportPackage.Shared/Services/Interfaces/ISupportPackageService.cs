@@ -7,7 +7,6 @@
 
 namespace Orc.SupportPackage
 {
-    using System;
     using System.Threading.Tasks;
 
     public interface ISupportPackageService
@@ -15,5 +14,7 @@ namespace Orc.SupportPackage
         Task<bool> CreateSupportPackageAsync(string zipFileName);
 
         Task<bool> CreateSupportPackageAsync(string zipFileName, string[] excludeFileNamePatterns);
+
+        Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns);
     }
 }
