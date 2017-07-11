@@ -4,6 +4,7 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
+
 namespace Orc.SupportPackage
 {
     using Catel;
@@ -12,12 +13,14 @@ namespace Orc.SupportPackage
     public class SupportPackageDirectory : SupportPackageFileSystemArtifact
     {
         #region Constructors
-        public SupportPackageDirectory(string title, string directoryName, bool includeInSupportPackage = true):base(title, includeInSupportPackage)
+        public SupportPackageDirectory(string title, string directoryName, bool includeInSupportPackage = true)
+            : base(title, includeInSupportPackage)
         {
             Argument.IsNotNullOrWhitespace(() => directoryName);
 
-            DirectoryName = directoryName;
+            this.DirectoryName = directoryName;
         }
+
         #endregion
 
         #region Properties

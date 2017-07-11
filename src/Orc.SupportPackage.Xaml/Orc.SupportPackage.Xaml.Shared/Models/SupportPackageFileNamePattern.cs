@@ -8,18 +8,21 @@
 namespace Orc.SupportPackage
 {
     using System.Linq;
+
     using Catel;
     using Catel.Fody;
 
     public class SupportPackageFileNamePattern : SupportPackageFileSystemArtifact
     {
         #region Constructors
-        public SupportPackageFileNamePattern(string title, string[] fileNamePatterns, bool includeInSupportPackage = true):base((title + " " + fileNamePatterns.Aggregate("(", (current, fileExtension) => current + fileExtension + " | ").TrimEnd('|', ' ') + ")").Trim(), includeInSupportPackage)
+        public SupportPackageFileNamePattern(string title, string[] fileNamePatterns, bool includeInSupportPackage = true)
+            : base((title + " " + fileNamePatterns.Aggregate("(", (current, fileExtension) => current + fileExtension + " | ").TrimEnd('|', ' ') + ")").Trim(), includeInSupportPackage)
         {
             Argument.IsNotNullOrEmptyArray(() => fileNamePatterns);
 
-            FileNamePatterns = fileNamePatterns;
+            this.FileNamePatterns = fileNamePatterns;
         }
+
         #endregion
 
         #region Properties
