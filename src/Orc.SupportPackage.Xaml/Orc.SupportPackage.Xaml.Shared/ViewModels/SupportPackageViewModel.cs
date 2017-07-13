@@ -12,7 +12,10 @@ namespace Orc.SupportPackage.ViewModels
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+
     using Catel;
+    using Catel.IoC;
+    using Catel.Logging;
     using Catel.MVVM;
     using Catel.Reflection;
     using Catel.Services;
@@ -20,32 +23,44 @@ namespace Orc.SupportPackage.ViewModels
 
     public class SupportPackageViewModel : ViewModelBase
     {
+        private static ILog Log = LogManager.GetCurrentClassLogger();
+
         #region Fields
         private readonly string _assemblyTitle;
+
         private readonly IPleaseWaitService _pleaseWaitService;
+
         private readonly IProcessService _processService;
+
         private readonly ILanguageService _languageService;
+
+        private readonly IServiceLocator _serviceLocator;
+
         private readonly ISaveFileService _saveFileService;
+
         private readonly ISupportPackageService _supportPackageService;
+
         private bool _isCreatingSupportPackage;
+
         private bool _isSupportPackageCreated;
         #endregion
 
         #region Constructors
-        public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageService supportPackageService,
-            IPleaseWaitService pleaseWaitService, IProcessService processService, ILanguageService languageService)
+        public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageService supportPackageService, IPleaseWaitService pleaseWaitService, IProcessService processService, ILanguageService languageService, IServiceLocator serviceLocator)
         {
             Argument.IsNotNull(() => saveFileService);
             Argument.IsNotNull(() => supportPackageService);
             Argument.IsNotNull(() => pleaseWaitService);
             Argument.IsNotNull(() => processService);
             Argument.IsNotNull(() => languageService);
+            Argument.IsNotNull(() => serviceLocator);
 
             _saveFileService = saveFileService;
             _supportPackageService = supportPackageService;
             _pleaseWaitService = pleaseWaitService;
             _processService = processService;
             _languageService = languageService;
+            _serviceLocator = serviceLocator;
 
             var assembly = AssemblyHelper.GetEntryAssembly();
             _assemblyTitle = assembly.Title();
@@ -55,39 +70,32 @@ namespace Orc.SupportPackage.ViewModels
             CreateSupportPackage = new TaskCommand(OnCreateSupportPackageExecuteAsync, OnCreateSupportPackageCanExecute);
             OpenDirectory = new Command(OnOpenDirectoryExecute, OnOpenDirectoryCanExecute);
 
-            SupportPackageFileTypes = new List<SupportPackageFileType>
+            SupportPackageFileSystemArtifacts = new List<SupportPackageFileSystemArtifact>();
+            foreach (var supportPackageContentProvider in _serviceLocator.ResolveTypes<ISupportPackageContentProvider>())
             {
-                new SupportPackageFileType(languageService.GetString("SupportPackage_SupportPackageFileType_SystemInformation_Title"), new[] {"systeminfo.xml", "systeminfo.txt"}),
-                new SupportPackageFileType(languageService.GetString("SupportPackage_SupportPackageFileType_ExecutableFiles_Title"), new[] {"*.exe", "*.dll"}, false),
-                new SupportPackageFileType(languageService.GetString("SupportPackage_SupportPackageFileType_ConfigurationFiles_Title"), new[] {"*.config"}),
-                new SupportPackageFileType(languageService.GetString("SupportPackage_SupportPackageFileType_LogFiles_Title"), new[] {"*.log"}),
-                new SupportPackageFileType(languageService.GetString("SupportPackage_SupportPackageFileType_TextFiles_Title"), new[] {"*.txt"}),
-                new SupportPackageFileType(languageService.GetString("SupportPackage_SupportPackageFileType_ImageFiles_Title"), new[] {"*.jpg", "*.bmp"})
-            };
+                var type = supportPackageContentProvider.GetType();
 
+                Log.Info("Loaded support package content provider of type: '{0}'", type);
+
+                foreach (var supportPackageFileSystemArtifacts in supportPackageContentProvider.GetSupportPackageFileSystemArtifacts())
+                {
+                    SupportPackageFileSystemArtifacts.Add(supportPackageFileSystemArtifacts);
+
+                    Log.Info("Added support package artifacts '{0}' from '{1}'", supportPackageFileSystemArtifacts.Title, type);
+                }
+            }
         }
+
         #endregion
 
         #region Properties
         public string LastSupportPackageFileName { get; private set; }
 
-        public List<SupportPackageFileType> SupportPackageFileTypes { get; }
-
-        #endregion
-
-        #region Methods
-        protected override async Task InitializeAsync()
-        {
-            await base.InitializeAsync();
-        }
-
-        protected override async Task CloseAsync()
-        {
-            await base.CloseAsync();
-        }
+        public List<SupportPackageFileSystemArtifact> SupportPackageFileSystemArtifacts { get; }
         #endregion
 
         #region Commands
+
         /// <summary>
         /// Gets the CreateSupportPackage command.
         /// </summary>
@@ -114,26 +122,23 @@ namespace Orc.SupportPackage.ViewModels
             {
                 var fileName = _saveFileService.FileName;
 
-                using (new DisposableToken(null, x =>
-                {
-                    _isCreatingSupportPackage = true;
-                    _pleaseWaitService.Push();
-                }, x =>
-                {
-                    _pleaseWaitService.Pop();
-                    _isCreatingSupportPackage = false;
-                }))
-                {
-                    var excludeFileNamePatterns = new List<string>();
-                    foreach (var supportPackageFileType in SupportPackageFileTypes)
-                    {
-                        if (!supportPackageFileType.IncludeInSupportPackage)
+                using (new DisposableToken(
+                    null,
+                    x =>
                         {
-                            excludeFileNamePatterns.AddRange(supportPackageFileType.FileNamePatterns);
-                        }
-                    }
+                            _isCreatingSupportPackage = true;
+                            _pleaseWaitService.Push();
+                        },
+                    x =>
+                        {
+                            _pleaseWaitService.Pop();
+                            _isCreatingSupportPackage = false;
+                        }))
+                {
+                    var excludeFileNamePatterns = SupportPackageFileSystemArtifacts.Where(artifact => !artifact.IncludeInSupportPackage).OfType<SupportPackageFileNamePattern>().SelectMany(artifact => artifact.FileNamePatterns).Distinct().ToArray();
+                    var directories = SupportPackageFileSystemArtifacts.Where(artifact => artifact.IncludeInSupportPackage).OfType<SupportPackageDirectory>().Select(artifact => artifact.DirectoryName).Distinct().ToArray();
 
-                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, excludeFileNamePatterns.Distinct().ToArray()), true);
+                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, directories, excludeFileNamePatterns), true);
                     LastSupportPackageFileName = fileName;
                 }
 
@@ -163,6 +168,7 @@ namespace Orc.SupportPackage.ViewModels
             var directory = Path.GetDirectoryName(LastSupportPackageFileName);
             _processService.StartProcess(directory);
         }
+
         #endregion
     }
 }

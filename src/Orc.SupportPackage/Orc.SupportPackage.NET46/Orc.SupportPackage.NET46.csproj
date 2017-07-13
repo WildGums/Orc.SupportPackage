@@ -56,6 +56,10 @@
       <HintPath>..\..\..\lib\MethodTimer.Fody.1.19.0\lib\dotnet\MethodTimer.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Obsolete, Version=4.2.2.0, Culture=neutral, PublicKeyToken=1ca091877d12ca03, processorArchitecture=MSIL">
+      <HintPath>..\..\..\lib\Obsolete.Fody.4.2.2\lib\dotnet\Obsolete.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Orc.SystemInfo, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\..\lib\Orc.SystemInfo.1.2.0\lib\net46\Orc.SystemInfo.dll</HintPath>
       <Private>True</Private>

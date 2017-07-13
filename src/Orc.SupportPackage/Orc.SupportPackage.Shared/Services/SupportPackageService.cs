@@ -8,6 +8,7 @@
 namespace Orc.SupportPackage
 {
     using System;
+    using System.Collections.Generic;
     using System.Drawing.Imaging;
     using System.IO;
     using System.Linq;
@@ -49,11 +50,16 @@ namespace Orc.SupportPackage
 
         public Task<bool> CreateSupportPackageAsync(string zipFileName)
         {
-           return CreateSupportPackageAsync(zipFileName, null);
+           return CreateSupportPackageAsync(zipFileName, null, null);
+        }
+
+        public Task<bool> CreateSupportPackageAsync(string zipFileName, string[] excludeFileNamePatterns)
+        {
+            return CreateSupportPackageAsync(zipFileName, null, excludeFileNamePatterns);
         }
 
         [Time]
-        public async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] excludeFileNamePatterns)
+        public async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns)
         {
             Argument.IsNotNullOrEmpty(() => zipFileName);
 
@@ -93,14 +99,24 @@ namespace Orc.SupportPackage
                         }
                     }
 
-                    var applicationDataDirectory = Catel.IO.Path.GetApplicationDataDirectory();
-
                     using (var zipFile = new ZipFile())
                     {
                         zipFile.CompressionLevel = CompressionLevel.BestCompression;
 
-                        zipFile.AddDirectory(applicationDataDirectory, "AppData");
+                        zipFile.AddDirectory(Catel.IO.Path.GetApplicationDataDirectory(), "AppData");
                         zipFile.AddDirectory(supportPackageContext.RootDirectory, string.Empty);
+
+                        if (directories != null && directories.Length > 0)
+                        {
+                            foreach (var directory in directories)
+                            {
+                                var directoryPathInArchive = directory.TrimEnd('\\').Split('\\').LastOrDefault();
+                                if (!string.IsNullOrEmpty(directoryPathInArchive))
+                                {
+                                    zipFile.AddDirectory(directory, directoryPathInArchive);
+                                }
+                            }
+                        }
 
                         if (excludeFileNamePatterns != null && excludeFileNamePatterns.Length > 0)
                         {
