@@ -24,7 +24,7 @@
             </StackPanel>
         </Label>
 
-        <ItemsControl Grid.Row="1" ItemsSource="{Binding SupportPackageFileTypes}" IsEnabled="{Binding ElementName=CreateSupportPackageButton, Path=IsEnabled}">
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding SupportPackageFileSystemArtifacts}" IsEnabled="{Binding ElementName=CreateSupportPackageButton, Path=IsEnabled}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <CheckBox IsChecked="{Binding IncludeInSupportPackage}" Content="{Binding Title}" />

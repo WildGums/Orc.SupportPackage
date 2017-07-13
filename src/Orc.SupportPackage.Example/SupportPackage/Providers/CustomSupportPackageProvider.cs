@@ -10,7 +10,6 @@ namespace Orc.SupportPackage.Example
     using System.Threading.Tasks;
     using Catel;
     using Catel.IoC;
-    using Catel.Windows.Interactivity;
     using FileSystem;
 
     public class CustomSupportPackageProvider : SupportPackageProviderBase

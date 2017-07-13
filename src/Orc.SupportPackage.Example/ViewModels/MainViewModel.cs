@@ -16,11 +16,10 @@ namespace Orc.SupportPackage.Example.ViewModels
     using System.Windows.Media.Imaging;
     using SystemInfo;
     using Catel;
-    using Catel.IoC;
     using Catel.MVVM;
     using Catel.Services;
     using Catel.Threading;
-    using SupportPackage.ViewModels;
+    using Orc.SupportPackage.ViewModels;
 
     public class MainViewModel : ViewModelBase
     {
