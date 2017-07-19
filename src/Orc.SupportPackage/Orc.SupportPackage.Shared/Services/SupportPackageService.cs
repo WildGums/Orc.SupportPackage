@@ -48,16 +48,6 @@ namespace Orc.SupportPackage
             _typeFactory = typeFactory;
         }
 
-        public Task<bool> CreateSupportPackageAsync(string zipFileName)
-        {
-           return CreateSupportPackageAsync(zipFileName, null, null);
-        }
-
-        public Task<bool> CreateSupportPackageAsync(string zipFileName, string[] excludeFileNamePatterns)
-        {
-            return CreateSupportPackageAsync(zipFileName, null, excludeFileNamePatterns);
-        }
-
         [Time]
         public async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns)
         {

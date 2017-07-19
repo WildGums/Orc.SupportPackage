@@ -12,12 +12,6 @@ namespace Orc.SupportPackage
     public interface ISupportPackageService
     {
         #region Methods
-        [ObsoleteEx(RemoveInVersion = "2.0", TreatAsErrorFromVersion = "1.5", ReplacementTypeOrMember = "CreateSupportPackageAsync(zipFileName, directories, excludeFileNamePatterns)")]
-        Task<bool> CreateSupportPackageAsync(string zipFileName);
-
-        [ObsoleteEx(RemoveInVersion = "2.0", TreatAsErrorFromVersion = "1.5", ReplacementTypeOrMember = "CreateSupportPackageAsync(zipFileName, directories, excludeFileNamePatterns)")]
-        Task<bool> CreateSupportPackageAsync(string zipFileName, string[] excludeFileNamePatterns);
-
         Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns);
         #endregion
     }
