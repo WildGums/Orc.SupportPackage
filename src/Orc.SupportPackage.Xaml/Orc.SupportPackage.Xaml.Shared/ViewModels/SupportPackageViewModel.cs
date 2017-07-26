@@ -118,7 +118,7 @@ namespace Orc.SupportPackage.ViewModels
             _saveFileService.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), string.Format("{0}_{1}.spkg", _assemblyTitle, DateTime.Now.ToString("yyyyMMdd_HHmmss")));
             _saveFileService.Filter = string.Format("{0}|*.spkg", _languageService.GetString("SupportPackage_SupportPackageFiles"));
 
-            if (_saveFileService.DetermineFile())
+            if (await _saveFileService.DetermineFileAsync())
             {
                 var fileName = _saveFileService.FileName;
 
