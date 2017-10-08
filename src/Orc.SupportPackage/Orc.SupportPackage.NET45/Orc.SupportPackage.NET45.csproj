@@ -58,6 +58,9 @@
       <HintPath>..\..\..\lib\Obsolete.Fody.4.3.2\Lib\dotnet\Obsolete.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Orc.FileSystem, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\..\lib\Orc.FileSystem.2.0.0\lib\net45\Orc.FileSystem.dll</HintPath>
+    </Reference>
     <Reference Include="Orc.SystemInfo, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\..\lib\Orc.SystemInfo.2.0.0\lib\net45\Orc.SystemInfo.dll</HintPath>
     </Reference>
