@@ -57,7 +57,7 @@ namespace Orc.SupportPackage
     }
     public class SupportPackageService : Orc.SupportPackage.ISupportPackageService
     {
-        public SupportPackageService(Orc.SystemInfo.ISystemInfoService systemInfoService, Orc.SupportPackage.IScreenCaptureService screenCaptureService, Catel.IoC.ITypeFactory typeFactory) { }
+        public SupportPackageService(Orc.SystemInfo.ISystemInfoService systemInfoService, Orc.SupportPackage.IScreenCaptureService screenCaptureService, Catel.IoC.ITypeFactory typeFactory, Orc.FileSystem.IDirectoryService directoryService) { }
         public System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns) { }
     }
 }
