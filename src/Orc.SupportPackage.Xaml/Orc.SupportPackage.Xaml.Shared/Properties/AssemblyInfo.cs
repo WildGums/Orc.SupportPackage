@@ -20,7 +20,4 @@ using System.Runtime.InteropServices;
 // COM, set the ComVisible attribute to true on that type.
 
 [assembly: ComVisible(false)]
-
-#if DEBUG
 [assembly: InternalsVisibleTo("Orc.SupportPackage.Tests")]
-#endif

@@ -24,6 +24,7 @@ namespace Orc.SupportPackage
     using Catel.Logging;
     using Catel.Reflection;
     using Catel.Threading;
+    using FileSystem;
     using Ionic.Zip;
     using Ionic.Zlib;
     using MethodTimer;
@@ -34,18 +35,22 @@ namespace Orc.SupportPackage
 
         private readonly IScreenCaptureService _screenCaptureService;
         private readonly ITypeFactory _typeFactory;
+        private readonly IDirectoryService _directoryService;
         private readonly ISystemInfoService _systemInfoService;
 
-        public SupportPackageService(ISystemInfoService systemInfoService, IScreenCaptureService screenCaptureService,
-            ITypeFactory typeFactory)
+        public SupportPackageService(ISystemInfoService systemInfoService, 
+            IScreenCaptureService screenCaptureService, ITypeFactory typeFactory,
+            IDirectoryService directoryService)
         {
             Argument.IsNotNull(() => systemInfoService);
             Argument.IsNotNull(() => screenCaptureService);
             Argument.IsNotNull(() => typeFactory);
+            Argument.IsNotNull(() => directoryService);
 
             _systemInfoService = systemInfoService;
             _screenCaptureService = screenCaptureService;
             _typeFactory = typeFactory;
+            _directoryService = directoryService;
         }
 
         [Time]
@@ -100,6 +105,12 @@ namespace Orc.SupportPackage
                         {
                             foreach (var directory in directories)
                             {
+                                if (!_directoryService.Exists(directory))
+                                {
+                                    Log.Warning($"Directory '{directory}' does not exist, skipping");
+                                    continue;
+                                }
+
                                 var directoryPathInArchive = directory.TrimEnd('\\').Split('\\').LastOrDefault();
                                 if (!string.IsNullOrEmpty(directoryPathInArchive))
                                 {
@@ -110,7 +121,7 @@ namespace Orc.SupportPackage
 
                         if (excludeFileNamePatterns != null && excludeFileNamePatterns.Length > 0)
                         {
-                            Log.Info("Removing excluded files..");
+                            Log.Info("Removing excluded files...");
 
                             var excludeFileNameRegexes = excludeFileNamePatterns.Select(s => new Regex(s.Replace("*", ".*").Replace(".", "\\.") + "$", RegexOptions.IgnoreCase | RegexOptions.Compiled)).ToList();
 
