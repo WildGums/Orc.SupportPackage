@@ -20,6 +20,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\SupportPackageFileNamePattern.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\DefaultSupportPackageContentProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Providers\Interfaces\ISupportPackageContentProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\Interfaces\ISupportPackageBuilderService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SupportPackageBuilderService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\SupportPackageViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\SupportPackageWindow.xaml.cs">
       <DependentUpon>SupportPackageWindow.xaml</DependentUpon>
