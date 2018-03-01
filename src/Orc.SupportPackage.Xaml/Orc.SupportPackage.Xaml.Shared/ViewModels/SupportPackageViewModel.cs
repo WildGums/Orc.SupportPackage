@@ -10,7 +10,6 @@ namespace Orc.SupportPackage.ViewModels
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Threading.Tasks;
 
     using Catel;
@@ -38,7 +37,7 @@ namespace Orc.SupportPackage.ViewModels
 
         private readonly ISaveFileService _saveFileService;
 
-        private readonly ISupportPackageService _supportPackageService;
+        private readonly ISupportPackageBuilderService _supportPackageService;
 
         private bool _isCreatingSupportPackage;
 
@@ -46,7 +45,7 @@ namespace Orc.SupportPackage.ViewModels
         #endregion
 
         #region Constructors
-        public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageService supportPackageService, IPleaseWaitService pleaseWaitService, IProcessService processService, ILanguageService languageService, IServiceLocator serviceLocator)
+        public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageBuilderService supportPackageService, IPleaseWaitService pleaseWaitService, IProcessService processService, ILanguageService languageService, IServiceLocator serviceLocator)
         {
             Argument.IsNotNull(() => saveFileService);
             Argument.IsNotNull(() => supportPackageService);
@@ -135,10 +134,8 @@ namespace Orc.SupportPackage.ViewModels
                             _isCreatingSupportPackage = false;
                         }))
                 {
-                    var excludeFileNamePatterns = SupportPackageFileSystemArtifacts.Where(artifact => !artifact.IncludeInSupportPackage).OfType<SupportPackageFileNamePattern>().SelectMany(artifact => artifact.FileNamePatterns).Distinct().ToArray();
-                    var directories = SupportPackageFileSystemArtifacts.Where(artifact => artifact.IncludeInSupportPackage).OfType<SupportPackageDirectory>().Select(artifact => artifact.DirectoryName).Distinct().ToArray();
+                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, SupportPackageFileSystemArtifacts), true);
 
-                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, directories, excludeFileNamePatterns), true);
                     LastSupportPackageFileName = fileName;
                 }
 

@@ -49,6 +49,9 @@
     <Reference Include="Catel.MVVM, Version=5.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\..\lib\Catel.MVVM.5.2.0\lib\net45\Catel.MVVM.dll</HintPath>
     </Reference>
+    <Reference Include="DotNetZip, Version=1.10.1.0, Culture=neutral, PublicKeyToken=6583c7c814667745, processorArchitecture=MSIL">
+      <HintPath>..\..\..\lib\DotNetZip.1.10.1\lib\net20\DotNetZip.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Expression.Interactions, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\..\lib\Expression.Blend.Sdk.WPF.1.0.1\lib\net45\Microsoft.Expression.Interactions.dll</HintPath>
       <Private>True</Private>
