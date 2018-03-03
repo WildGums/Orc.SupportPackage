@@ -7,6 +7,8 @@
 
 namespace Orc.SupportPackage.Views
 {
+    using System.Windows.Controls;
+
     using Catel.Windows;
     using ViewModels;
 
@@ -34,6 +36,11 @@ namespace Orc.SupportPackage.Views
             : base(viewModel, DataWindowMode.Custom)
         {
             InitializeComponent();
+        }
+
+        private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }
