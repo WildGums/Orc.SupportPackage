@@ -19,6 +19,8 @@ namespace Orc.SupportPackage
 
     using Ionic.Zip;
 
+    using Orc.FileSystem;
+
     public class SupportPackageBuilderService : ISupportPackageBuilderService
     {
         private const int DirectorySizeLimitInBytes = 25 * 1024 * 1024;
@@ -27,14 +29,18 @@ namespace Orc.SupportPackage
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private readonly ISupportPackageService _supportPackageService;
+
+        private readonly IFileService _fileService;
         #endregion
 
         #region Constructors
-        public SupportPackageBuilderService(ISupportPackageService supportPackageService)
+        public SupportPackageBuilderService(ISupportPackageService supportPackageService, IFileService fileService)
         {
             Argument.IsNotNull(() => supportPackageService);
+            Argument.IsNotNull(() => fileService);
 
             _supportPackageService = supportPackageService;
+            _fileService = fileService;
         }
 
         #endregion
@@ -108,23 +114,22 @@ namespace Orc.SupportPackage
                                 }
                             }
                         }
-                        catch (Exception e)
+                        catch (Exception ex)
                         {
-                            Log.Warning(e);
+                            Log.Warning(ex);
                         }
 
                         try
                         {
-                            var fileInfo = new FileInfo(path);
-                            if (fileInfo.Exists)
+                            if (_fileService.Exists(path))
                             {
                                 zipFile.AddFile(path, customDataDirectoryName);
                                 builder.AppendLine("- File: " + path);
                             }
                         }
-                        catch (Exception e)
+                        catch (Exception ex)
                         {
-                            Log.Warning(e);
+                            Log.Warning(ex);
                         }
                     }
                 }
