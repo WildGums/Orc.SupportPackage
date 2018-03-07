@@ -7,6 +7,8 @@
 
 namespace Orc.SupportPackage.Views
 {
+    using System.Windows.Controls;
+
     using Catel.Windows;
     using ViewModels;
 

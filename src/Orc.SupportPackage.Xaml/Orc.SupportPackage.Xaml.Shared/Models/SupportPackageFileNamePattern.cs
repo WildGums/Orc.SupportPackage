@@ -20,7 +20,7 @@ namespace Orc.SupportPackage
         {
             Argument.IsNotNullOrEmptyArray(() => fileNamePatterns);
 
-            this.FileNamePatterns = fileNamePatterns;
+            FileNamePatterns = fileNamePatterns;
         }
 
         #endregion

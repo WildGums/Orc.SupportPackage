@@ -14,6 +14,7 @@ public static class ModuleInitializer
     {
         var serviceLocator = ServiceLocator.Default;
 
+        serviceLocator.RegisterType<ISupportPackageBuilderService, SupportPackageBuilderService>();
         serviceLocator.RegisterType<ISupportPackageContentProvider, DefaultSupportPackageContentProvider>();
 
         var languageService = serviceLocator.ResolveType<ILanguageService>();
