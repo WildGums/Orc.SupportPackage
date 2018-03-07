@@ -18,7 +18,7 @@ namespace Orc.SupportPackage
         {
             Argument.IsNotNullOrWhitespace(() => directoryName);
 
-            this.DirectoryName = directoryName;
+            DirectoryName = directoryName;
         }
 
         #endregion

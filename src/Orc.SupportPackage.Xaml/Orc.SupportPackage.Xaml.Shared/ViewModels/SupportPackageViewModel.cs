@@ -9,10 +9,16 @@ namespace Orc.SupportPackage.ViewModels
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.ComponentModel;
     using System.IO;
+    using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
+    using System.Windows.Controls;
 
     using Catel;
+    using Catel.Collections;
     using Catel.IoC;
     using Catel.Logging;
     using Catel.MVVM;
@@ -31,6 +37,10 @@ namespace Orc.SupportPackage.ViewModels
 
         private readonly IProcessService _processService;
 
+        private readonly ISelectDirectoryService _selectDirectoryService;
+
+        private readonly IOpenFileService _openFileService;
+
         private readonly ILanguageService _languageService;
 
         private readonly IServiceLocator _serviceLocator;
@@ -45,12 +55,14 @@ namespace Orc.SupportPackage.ViewModels
         #endregion
 
         #region Constructors
-        public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageBuilderService supportPackageService, IPleaseWaitService pleaseWaitService, IProcessService processService, ILanguageService languageService, IServiceLocator serviceLocator)
+        public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageBuilderService supportPackageService, IPleaseWaitService pleaseWaitService, IProcessService processService, ISelectDirectoryService selectDirectoryService, IOpenFileService openFileService, ILanguageService languageService, IServiceLocator serviceLocator)
         {
             Argument.IsNotNull(() => saveFileService);
             Argument.IsNotNull(() => supportPackageService);
             Argument.IsNotNull(() => pleaseWaitService);
             Argument.IsNotNull(() => processService);
+            Argument.IsNotNull(() => selectDirectoryService);
+            Argument.IsNotNull(() => openFileService);
             Argument.IsNotNull(() => languageService);
             Argument.IsNotNull(() => serviceLocator);
 
@@ -58,6 +70,8 @@ namespace Orc.SupportPackage.ViewModels
             _supportPackageService = supportPackageService;
             _pleaseWaitService = pleaseWaitService;
             _processService = processService;
+            _selectDirectoryService = selectDirectoryService;
+            _openFileService = openFileService;
             _languageService = languageService;
             _serviceLocator = serviceLocator;
 
@@ -68,6 +82,9 @@ namespace Orc.SupportPackage.ViewModels
 
             CreateSupportPackage = new TaskCommand(OnCreateSupportPackageExecuteAsync, OnCreateSupportPackageCanExecute);
             OpenDirectory = new Command(OnOpenDirectoryExecute, OnOpenDirectoryCanExecute);
+
+            CustomPaths = new FastObservableCollection<string>();
+            SelectedCustomPaths = new List<string>();
 
             SupportPackageFileSystemArtifacts = new List<SupportPackageFileSystemArtifact>();
             foreach (var supportPackageContentProvider in _serviceLocator.ResolveTypes<ISupportPackageContentProvider>())
@@ -83,6 +100,11 @@ namespace Orc.SupportPackage.ViewModels
                     Log.Info("Added support package artifacts '{0}' from '{1}'", supportPackageFileSystemArtifacts.Title, type);
                 }
             }
+
+            AddDirectoryCommand = new TaskCommand(OnAddDirectoryExecuteAsync);
+            AddFileCommand = new TaskCommand(OnAddFileExecuteAsync);
+            RemovePathCommand = new Command(OnRemovePathExecute, OnRemovePathCanExecute);
+            SelectionChangedCommand = new Command<SelectionChangedEventArgs>(OnSelectionChangedExecute);
         }
 
         #endregion
@@ -91,14 +113,83 @@ namespace Orc.SupportPackage.ViewModels
         public string LastSupportPackageFileName { get; private set; }
 
         public List<SupportPackageFileSystemArtifact> SupportPackageFileSystemArtifacts { get; }
+
+        public FastObservableCollection<string> CustomPaths { get; }
+
+        public bool IncludeCustomPathsInSupportPackage { get; set; }
+
+        public List<string> SelectedCustomPaths { get; }
         #endregion
 
         #region Commands
+        public TaskCommand AddDirectoryCommand { get; set; }
+
+        private async Task OnAddDirectoryExecuteAsync()
+        {
+            if (await _selectDirectoryService.DetermineDirectoryAsync())
+            {
+                var directoryName = _selectDirectoryService.DirectoryName;
+                await AddCustomPathAsync(directoryName);
+            }
+        }
+
+        private async Task AddCustomPathAsync(string path)
+        {
+            Argument.IsNotNullOrWhitespace(() => path);
+
+            if (CustomPaths.OfType<string>().Contains(path, StringComparer.InvariantCultureIgnoreCase))
+            {
+                return;
+            }
+
+            CustomPaths.Add(path);
+        }
+
+        public TaskCommand AddFileCommand { get; }
+
+        private async Task OnAddFileExecuteAsync()
+        {
+            if (await _openFileService.DetermineFileAsync())
+            {
+                var fileName = _openFileService.FileName;
+                await AddCustomPathAsync(fileName);
+            }
+        }
+
+        public Command RemovePathCommand { get; }
+
+        private bool OnRemovePathCanExecute()
+        {
+            return true;
+        }
+
+        private void OnRemovePathExecute()
+        {
+            using (CustomPaths.SuspendChangeNotifications())
+            {
+                foreach (var path in SelectedCustomPaths)
+                {
+                    CustomPaths.Remove(path);
+                }
+            }
+        }
+
+        public Command<SelectionChangedEventArgs> SelectionChangedCommand { get; }
+
+        private void OnSelectionChangedExecute(SelectionChangedEventArgs args)
+        {
+            SelectedCustomPaths.AddRange(args.AddedItems.OfType<string>());
+            foreach (var path in args.RemovedItems.OfType<string>())
+            {
+                SelectedCustomPaths.Remove(path);
+            }
+        }
+
 
         /// <summary>
         /// Gets the CreateSupportPackage command.
         /// </summary>
-        public TaskCommand CreateSupportPackage { get; private set; }
+        public TaskCommand CreateSupportPackage { get; }
 
         /// <summary>
         /// Method to check whether the CreateSupportPackage command can be executed.
@@ -120,6 +211,8 @@ namespace Orc.SupportPackage.ViewModels
             if (await _saveFileService.DetermineFileAsync())
             {
                 var fileName = _saveFileService.FileName;
+                var supportPackageFileSystemArtifacts = SupportPackageFileSystemArtifacts.ToList();
+                supportPackageFileSystemArtifacts.Add(new CustomPathsPackageFileSystemArtifact(_languageService.GetString("SupportPackage_CustomPaths"), CustomPaths.ToList(), IncludeCustomPathsInSupportPackage));
 
                 using (new DisposableToken(
                     null,
@@ -134,7 +227,7 @@ namespace Orc.SupportPackage.ViewModels
                             _isCreatingSupportPackage = false;
                         }))
                 {
-                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, SupportPackageFileSystemArtifacts), true);
+                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, supportPackageFileSystemArtifacts), true);
 
                     LastSupportPackageFileName = fileName;
                 }

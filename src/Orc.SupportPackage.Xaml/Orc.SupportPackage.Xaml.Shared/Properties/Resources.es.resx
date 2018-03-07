@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -156,4 +156,16 @@
   <data name="SupportPackage_SupportPackageFileType_ImageFiles_Title" xml:space="preserve">
       <value>Image files</value>
   </data>
+  <data name="SupportPackage_CustomPaths" xml:space="preserve">
+    <value>Custom paths</value>
+  </data>
+  <data name="SupportPackage_AddDirectory" xml:space="preserve">
+    <value>Add directory</value>
+  </data>
+  <data name="SupportPackage_AddFile" xml:space="preserve">
+    <value>Add file</value>
+  </data>
+  <data name="SupportPackage_RemovePath" xml:space="preserve">
+    <value>Remove</value>
+  </data>  
 </root>
