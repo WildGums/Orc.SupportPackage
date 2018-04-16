@@ -1,0 +1,60 @@
+<catel:DataWindow x:Class="Orc.SupportPackage.Views.SupportPackageWindow"
+                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:catel="http://schemas.catelproject.com"
+                  xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+                  MaxWidth="500" Height="300">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        
+        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+            <StackPanel>
+                <TextBlock Text="{catel:LanguageBinding SupportPackage_Explanation_01}" TextWrapping="Wrap" Margin="0,0,0,12" />
+                <TextBlock Text="{catel:LanguageBinding SupportPackage_Explanation_02}" TextWrapping="Wrap" Margin="0,0,0,12" />
+                <TextBlock Text="{catel:LanguageBinding SupportPackage_Explanation_03}" TextWrapping="Wrap" />
+            </StackPanel>
+        </Label>
+
+        <ItemsControl Grid.Row="1" Grid.ColumnSpan="2" ItemsSource="{Binding SupportPackageFileSystemArtifacts}" IsEnabled="{Binding ElementName=CreateSupportPackageButton, Path=IsEnabled}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <CheckBox IsChecked="{Binding IncludeInSupportPackage}" Content="{Binding Title}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <CheckBox Grid.Row="2" Grid.Column="0" IsChecked="{Binding IncludeCustomPathsInSupportPackage}" Content="{catel:LanguageBinding SupportPackage_CustomPaths}" />
+        <ListBox Grid.Row="3" Grid.Column="0" ItemsSource="{Binding CustomPaths}" Height="200" IsEnabled="{Binding IncludeCustomPathsInSupportPackage}"  SelectionMode="Multiple">
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="SelectionChanged">
+                    <catel:EventToCommand Command="{Binding SelectionChangedCommand}" DisableAssociatedObjectOnCannotExecute="False" PassEventArgsToCommand="True"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
+        </ListBox>
+        <StackPanel Grid.Row="3" Grid.Column="1" IsEnabled="{Binding IncludeCustomPathsInSupportPackage}">
+            <Button VerticalAlignment="Top" Content="{catel:LanguageBinding SupportPackage_AddDirectory}" Command="{Binding AddDirectoryCommand}"/>
+            <Button VerticalAlignment="Top" Content="{catel:LanguageBinding SupportPackage_AddFile}" Command="{Binding AddFileCommand}"/>
+            <Button VerticalAlignment="Top" Content="{catel:LanguageBinding SupportPackage_RemovePath}" Command="{Binding RemovePathCommand}"/>
+        </StackPanel>
+
+        <Button Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Command="{Binding CreateSupportPackage}" 
+                Content="{catel:LanguageBinding SupportPackage_IUnderstandCreateSupportPackage}" Margin="6" Padding="4" x:Name="CreateSupportPackageButton" />
+
+        <Button Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Command="{Binding OpenDirectory}" 
+                Content="{catel:LanguageBinding SupportPackage_OpenDirectory}" Margin="6" Padding="4" />
+    </Grid>
+    
+</catel:DataWindow>

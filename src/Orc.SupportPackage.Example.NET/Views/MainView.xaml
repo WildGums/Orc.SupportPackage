@@ -1,0 +1,40 @@
+﻿<catel:Window x:Class="Orc.SupportPackage.Example.Views.MainView"
+              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:catel="http://schemas.catelproject.com"
+              xmlns:orc="http://www.wildgums.net.au/orc"
+              Height="340" Width="606">
+    
+    <orc:TabControl>
+        <TabItem Header="Screen capture">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Button Content="Make screenshot" Grid.Column="0" Grid.Row="0" Command="{Binding Screenshot}"/>
+                <Image Source="{Binding ScreenPic}" Grid.Column="0" Grid.Row="1"/>                
+            </Grid>
+        </TabItem>
+        
+        <TabItem Header="System information">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                
+                <Button Content="Show system information" Grid.Column="0" Grid.Row="0" Command="{Binding ShowSystemInfo}"/>
+                <TextBox Text="{Binding SystemInfo}" Grid.Column="0" Grid.Row="1" VerticalScrollBarVisibility="Auto"/>
+            </Grid>
+        </TabItem>
+        
+        <TabItem Header="Zipping all data">
+            <Grid>
+                <Button Content="Save support package as" Margin="15  15 15 15" Command="{Binding SavePackage}"/>
+            </Grid>
+        </TabItem>
+    </orc:TabControl>
+</catel:Window>
+
