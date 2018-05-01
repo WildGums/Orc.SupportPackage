@@ -7,6 +7,7 @@
 
 namespace Orc.SupportPackage.Tests
 {
+    using System.Runtime.CompilerServices;
     using ApiApprover;
     using NUnit.Framework;
     using Views;
@@ -14,7 +15,7 @@ namespace Orc.SupportPackage.Tests
     [TestFixture]
     public class PublicApiFacts
     {
-        [Test]
+        [Test, MethodImpl(MethodImplOptions.NoInlining)]
         public void Orc_SupportPackage_HasNoBreakingChanges()
         {
             var assembly = typeof(SupportPackageService).Assembly;
@@ -22,7 +23,7 @@ namespace Orc.SupportPackage.Tests
             PublicApiApprover.ApprovePublicApi(assembly);
         }
 
-        [Test]
+        [Test, MethodImpl(MethodImplOptions.NoInlining)]
         public void Orc_SupportPackage_Xaml_HasNoBreakingChanges()
         {
             var assembly = typeof(SupportPackageWindow).Assembly;
