@@ -4,6 +4,7 @@
     <AssemblyName>Orc.SupportPackage.Example.NET</AssemblyName>
     <RootNamespace>Orc.SupportPackage.Example</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
+    <SonarQubeExclude>true</SonarQubeExclude>
   </PropertyGroup>
 
   <PropertyGroup>
