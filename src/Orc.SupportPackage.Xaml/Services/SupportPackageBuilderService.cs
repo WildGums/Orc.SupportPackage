@@ -109,7 +109,7 @@ namespace Orc.SupportPackage
                                 }
                                 else
                                 {
-                                    zipFile.AddDirectory(path, customDataDirectoryName + "\\" + directoryInfo.Name);
+                                    zipFile.AddDirectory(path, Path.Combine(customDataDirectoryName, directoryInfo.Name));
                                     builder.AppendLine("- Directory: " + path);
                                 }
                             }

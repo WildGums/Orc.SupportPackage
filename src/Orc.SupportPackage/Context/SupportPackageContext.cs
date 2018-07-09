@@ -9,10 +9,11 @@ namespace Orc.SupportPackage
 {
     using System;
     using System.IO;
+    using Catel;
     using Catel.Logging;
     using Catel.Reflection;
 
-    public class SupportPackageContext : IDisposable, ISupportPackageContext
+    public class SupportPackageContext : Disposable, ISupportPackageContext
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
@@ -55,10 +56,7 @@ namespace Orc.SupportPackage
             return fullPath;
         }
 
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
+        protected override void DisposeManaged()
         {
             Log.Info("Deleting temporary files from '{0}'", _rootDirectory);
 

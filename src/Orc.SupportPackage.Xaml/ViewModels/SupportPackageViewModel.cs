@@ -34,23 +34,14 @@ namespace Orc.SupportPackage.ViewModels
         private readonly string _assemblyTitle;
 
         private readonly IPleaseWaitService _pleaseWaitService;
-
         private readonly IProcessService _processService;
-
         private readonly ISelectDirectoryService _selectDirectoryService;
-
         private readonly IOpenFileService _openFileService;
-
         private readonly ILanguageService _languageService;
-
-        private readonly IServiceLocator _serviceLocator;
-
         private readonly ISaveFileService _saveFileService;
-
         private readonly ISupportPackageBuilderService _supportPackageService;
 
         private bool _isCreatingSupportPackage;
-
         private bool _isSupportPackageCreated;
         #endregion
 
@@ -73,7 +64,6 @@ namespace Orc.SupportPackage.ViewModels
             _selectDirectoryService = selectDirectoryService;
             _openFileService = openFileService;
             _languageService = languageService;
-            _serviceLocator = serviceLocator;
 
             var assembly = AssemblyHelper.GetEntryAssembly();
             _assemblyTitle = assembly.Title();
@@ -87,7 +77,7 @@ namespace Orc.SupportPackage.ViewModels
             SelectedCustomPaths = new List<string>();
 
             SupportPackageFileSystemArtifacts = new List<SupportPackageFileSystemArtifact>();
-            foreach (var supportPackageContentProvider in _serviceLocator.ResolveTypes<ISupportPackageContentProvider>())
+            foreach (var supportPackageContentProvider in serviceLocator.ResolveTypes<ISupportPackageContentProvider>())
             {
                 var type = supportPackageContentProvider.GetType();
 
@@ -103,7 +93,7 @@ namespace Orc.SupportPackage.ViewModels
 
             AddDirectoryCommand = new TaskCommand(OnAddDirectoryExecuteAsync);
             AddFileCommand = new TaskCommand(OnAddFileExecuteAsync);
-            RemovePathCommand = new Command(OnRemovePathExecute, OnRemovePathCanExecute);
+            RemovePathCommand = new Command(OnRemovePathExecute);
             SelectionChangedCommand = new Command<SelectionChangedEventArgs>(OnSelectionChangedExecute);
         }
 
@@ -137,7 +127,7 @@ namespace Orc.SupportPackage.ViewModels
         {
             Argument.IsNotNullOrWhitespace(() => path);
 
-            if (CustomPaths.OfType<string>().Contains(path, StringComparer.InvariantCultureIgnoreCase))
+            if (CustomPaths.Contains(path, StringComparer.InvariantCultureIgnoreCase))
             {
                 return;
             }
@@ -157,11 +147,6 @@ namespace Orc.SupportPackage.ViewModels
         }
 
         public Command RemovePathCommand { get; }
-
-        private bool OnRemovePathCanExecute()
-        {
-            return true;
-        }
 
         private void OnRemovePathExecute()
         {

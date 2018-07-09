@@ -64,9 +64,9 @@ namespace Orc.SupportPackage
             return img;
         }
 
-        private static Rect GetWindowRect(IntPtr handle)
+        private static RECT GetWindowRect(IntPtr handle)
         {
-            var windowRect = new Rect();
+            var windowRect = new RECT();
             User32.GetWindowRect(handle, ref windowRect);
             return windowRect;
         }

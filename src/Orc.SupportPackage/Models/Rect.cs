@@ -10,7 +10,7 @@ namespace Orc.SupportPackage
     using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct Rect
+    internal struct RECT
     {
         public int left;
 

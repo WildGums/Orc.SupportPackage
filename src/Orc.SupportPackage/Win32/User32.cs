@@ -10,15 +10,15 @@ namespace Orc.SupportPackage
     using System;
     using System.Runtime.InteropServices;
 
-    internal class User32
+    internal static class User32
     {
         [DllImport("user32.dll")]
-        public static extern IntPtr GetWindowDC(IntPtr hWnd);
+        internal static extern IntPtr GetWindowDC(IntPtr hWnd);
 
         [DllImport("user32.dll")]
-        public static extern IntPtr ReleaseDC(IntPtr hWnd, IntPtr hDC);
+        internal static extern IntPtr ReleaseDC(IntPtr hWnd, IntPtr hDC);
 
         [DllImport("user32.dll")]
-        public static extern IntPtr GetWindowRect(IntPtr hWnd, ref Rect rect);
+        internal static extern IntPtr GetWindowRect(IntPtr hWnd, ref RECT rect);
     }
 }
