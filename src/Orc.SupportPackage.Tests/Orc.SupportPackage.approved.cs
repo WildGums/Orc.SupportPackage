@@ -26,23 +26,16 @@ namespace Orc.SupportPackage
     {
         System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns);
     }
-    public struct Rect
-    {
-        public int bottom;
-        public int left;
-        public int right;
-        public int top;
-    }
     public class ScreenCaptureService : Orc.SupportPackage.IScreenCaptureService
     {
         public ScreenCaptureService() { }
         public System.Drawing.Image CaptureWindowImage(System.Windows.Window window) { }
     }
-    public class SupportPackageContext : Orc.SupportPackage.ISupportPackageContext, System.IDisposable
+    public class SupportPackageContext : Catel.Disposable, Orc.SupportPackage.ISupportPackageContext
     {
         public SupportPackageContext() { }
         public string RootDirectory { get; }
-        public void Dispose() { }
+        protected override void DisposeManaged() { }
         public string GetDirectory(string relativeDirectoryName) { }
         public string GetFile(string relativeFilePath) { }
     }
