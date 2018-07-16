@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SupportPackage_CreateSupportPackage" xml:space="preserve">
+    <value>Create support package for {0}</value>
+  </data>
+  <data name="SupportPackage_Explanation_01" xml:space="preserve">
+    <value>Here you can create a support package. The support package will contain information that might help support engineers to analyze any possible issues.</value>
+  </data>
+  <data name="SupportPackage_Explanation_02" xml:space="preserve">
+    <value>Depending on the amount of information to gather, this operation can take several seconds to a few minutes. Please be patient while the support package is being created.</value>
+  </data>
+  <data name="SupportPackage_Explanation_03" xml:space="preserve">
+    <value>Note that support packages might contain sensitive information so make sure you only share this information with a support engineer.</value>
+  </data>
+  <data name="SupportPackage_IUnderstandCreateSupportPackage" xml:space="preserve">
+    <value>I understand, create the support package</value>
+  </data>
+  <data name="SupportPackage_OpenDirectory" xml:space="preserve">
+    <value>Open directory</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFiles" xml:space="preserve">
+    <value>Support package files</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFileType_SystemInformation_Title" xml:space="preserve">
+    <value>System information</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFileType_ExecutableFiles_Title" xml:space="preserve">
+    <value>Executable files</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFileType_ConfigurationFiles_Title" xml:space="preserve">
+    <value>Configuration files</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFileType_LogFiles_Title" xml:space="preserve">
+    <value>Log files</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFileType_TextFiles_Title" xml:space="preserve">
+    <value>Text files</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFileType_ImageFiles_Title" xml:space="preserve">
+    <value>Image files</value>
+  </data>
+  <data name="SupportPackage_CustomPaths" xml:space="preserve">
+    <value>Custom paths</value>
+  </data>
+  <data name="SupportPackage_AddDirectory" xml:space="preserve">
+    <value>Add directory</value>
+  </data>
+  <data name="SupportPackage_AddFile" xml:space="preserve">
+    <value>Add file</value>
+  </data>
+  <data name="SupportPackage_RemovePath" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+</root>

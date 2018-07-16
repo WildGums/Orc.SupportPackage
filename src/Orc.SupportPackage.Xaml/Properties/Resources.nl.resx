@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SupportPackage_CreateSupportPackage" xml:space="preserve">
+    <value>Maak ondersteuningspakket voor {0}</value>
+  </data>
+  <data name="SupportPackage_Explanation_01" xml:space="preserve">
+    <value>Hier kun je een ondersteundingspakket maken. Een ondersteuningspakket bevat informatie dat de ontwikkelaars kan helpen bij het analyseren van mogelijke problemen.</value>
+  </data>
+  <data name="SupportPackage_Explanation_02" xml:space="preserve">
+    <value>Dit proces kan enkele seconden tot enkele minuten duren. Dit is afhankelijk van de hoeveelheid informatie die verzameld moet worden. Wacht geduldig af zolang de informatie verzameld wordt.</value>
+  </data>
+  <data name="SupportPackage_Explanation_03" xml:space="preserve">
+    <value>Let erop dat ondersteuningspakketen mogelijk sensitieve informatie kunnen bevatten. Zorg er dus voor dat je deze informatie alleen deelt met een ontwikkelaar of iemand van de ondersteuning.</value>
+  </data>
+  <data name="SupportPackage_IUnderstandCreateSupportPackage" xml:space="preserve">
+    <value>Ik begrijp het, maak het ondersteuningspakket</value>
+  </data>
+  <data name="SupportPackage_OpenDirectory" xml:space="preserve">
+    <value>Open folder</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFiles" xml:space="preserve">
+    <value>Ondersteuningspakket documenten</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFileType_SystemInformation_Title" xml:space="preserve">
+    <value>System information</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFileType_ExecutableFiles_Title" xml:space="preserve">
+    <value>Executable files</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFileType_ConfigurationFiles_Title" xml:space="preserve">
+    <value>Configuration files</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFileType_LogFiles_Title" xml:space="preserve">
+    <value>Log files</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFileType_TextFiles_Title" xml:space="preserve">
+    <value>Text files</value>
+  </data>
+  <data name="SupportPackage_SupportPackageFileType_ImageFiles_Title" xml:space="preserve">
+    <value>Image files</value>
+  </data>
+  <data name="SupportPackage_CustomPaths" xml:space="preserve">
+    <value>Custom paths</value>
+  </data>
+  <data name="SupportPackage_AddDirectory" xml:space="preserve">
+    <value>Add directory</value>
+  </data>
+  <data name="SupportPackage_AddFile" xml:space="preserve">
+    <value>Add file</value>
+  </data>
+  <data name="SupportPackage_RemovePath" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+</root>
