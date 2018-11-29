@@ -8,6 +8,7 @@
     <PackageVersion>1.0.0-alpha0001</PackageVersion>
     <Description>Support package library.</Description>
     <PackageTags>orc;support;package</PackageTags>
+    <UseWpf>true</UseWpf>
   </PropertyGroup>
 
   <PropertyGroup>
