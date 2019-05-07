@@ -3,15 +3,15 @@
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                   xmlns:catel="http://schemas.catelproject.com"
                   xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-                  MaxWidth="500" Height="300">
+                  MaxWidth="500" Height="300" MaxHeight="800">
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         
         <Grid.ColumnDefinitions>
@@ -26,24 +26,31 @@
             </StackPanel>
         </Label>
 
-        <ItemsControl Grid.Row="1"  ItemsSource="{Binding SupportPackageFileSystemArtifacts}" IsEnabled="{Binding ElementName=CreateSupportPackageButton, Path=IsEnabled}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <CheckBox IsChecked="{Binding IncludeInSupportPackage}" Content="{Binding Title}" />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding SupportPackageFileSystemArtifacts}" 
+                          IsEnabled="{Binding ElementName=CreateSupportPackageButton, Path=IsEnabled}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <CheckBox IsChecked="{Binding IncludeInSupportPackage}" Content="{Binding Title}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
         <StackPanel Grid.Row="2" Grid.Column="0" IsEnabled="{Binding ElementName=CreateSupportPackageButton, Path=IsEnabled}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+                
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
+                
                 <CheckBox Grid.Row="0" Grid.Column="0" IsChecked="{Binding IncludeCustomPathsInSupportPackage}" Content="{catel:LanguageBinding SupportPackage_CustomPaths}"/>
                 <ListBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding CustomPaths}" Height="200" IsEnabled="{Binding IncludeCustomPathsInSupportPackage}"  SelectionMode="Multiple">
                     <i:Interaction.Triggers>
@@ -59,6 +66,7 @@
                 </StackPanel>
             </Grid>
         </StackPanel>
+        
         <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Command="{Binding CreateSupportPackage}" 
                 Content="{catel:LanguageBinding SupportPackage_IUnderstandCreateSupportPackage}" Margin="6" Padding="4" x:Name="CreateSupportPackageButton" />
 
