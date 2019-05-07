@@ -1,6 +1,6 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>net462</TargetFrameworks>
     <AssemblyName>Orc.SupportPackage.Example.NET</AssemblyName>
     <RootNamespace>Orc.SupportPackage.Example</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
