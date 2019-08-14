@@ -8,7 +8,13 @@
     <PackageVersion>1.0.0-alpha0001</PackageVersion>
     <Description>Support package xaml library.</Description>
     <PackageTags>orc;support;package;xaml;wpf</PackageTags>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <UseWpf>true</UseWpf>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ExtrasEnableImplicitWpfReferences>true</ExtrasEnableImplicitWpfReferences>
+    <ExtrasEnableImplicitWinFormsReferences>true</ExtrasEnableImplicitWinFormsReferences>
   </PropertyGroup>
 
   <PropertyGroup>
