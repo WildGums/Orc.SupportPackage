@@ -27,20 +27,22 @@ namespace Orc.SupportPackage.Example.ViewModels
         private static int _screenshotIndex;
 
         private readonly IScreenCaptureService _screenCaptureService;
-
         private readonly ISystemInfoService _systemInfoService;
-
         private readonly IUIVisualizerService _uiVisualizerService;
+        private readonly IAppDataService _appDataService;
 
-        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService, IUIVisualizerService uiVisualizerService)
+        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService, 
+            IUIVisualizerService uiVisualizerService, IAppDataService appDataService)
         {
             Argument.IsNotNull(() => screenCaptureService);
             Argument.IsNotNull(() => systemInfoService);
             Argument.IsNotNull(() => uiVisualizerService);
+            Argument.IsNotNull(() => appDataService);
 
             _screenCaptureService = screenCaptureService;
             _systemInfoService = systemInfoService;
             _uiVisualizerService = uiVisualizerService;
+            _appDataService = appDataService;
 
             Screenshot = new TaskCommand(OnScreenshotExecuteAsync);
             ShowSystemInfo = new TaskCommand(OnShowSystemInfoExecuteAsync);
@@ -65,7 +67,7 @@ namespace Orc.SupportPackage.Example.ViewModels
 
             var mainWindow = Application.Current.MainWindow;
             var image = _screenCaptureService.CaptureWindowImage(mainWindow);
-            var applicationDataDirectory = Catel.IO.Path.GetApplicationDataDirectory();
+            var applicationDataDirectory = _appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming);
             var filename = Path.Combine(applicationDataDirectory, string.Format("screenshot{0}.jpg", _screenshotIndex++));
             image.Save(filename, ImageFormat.Jpeg);
 
