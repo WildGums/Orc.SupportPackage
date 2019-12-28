@@ -28,6 +28,7 @@ namespace Orc.SupportPackage
     using Ionic.Zip;
     using Ionic.Zlib;
     using MethodTimer;
+    using Catel.Services;
 
     public class SupportPackageService : ISupportPackageService
     {
@@ -36,21 +37,24 @@ namespace Orc.SupportPackage
         private readonly IScreenCaptureService _screenCaptureService;
         private readonly ITypeFactory _typeFactory;
         private readonly IDirectoryService _directoryService;
+        private readonly IAppDataService _appDataService;
         private readonly ISystemInfoService _systemInfoService;
 
         public SupportPackageService(ISystemInfoService systemInfoService, 
             IScreenCaptureService screenCaptureService, ITypeFactory typeFactory,
-            IDirectoryService directoryService)
+            IDirectoryService directoryService, IAppDataService appDataService)
         {
             Argument.IsNotNull(() => systemInfoService);
             Argument.IsNotNull(() => screenCaptureService);
             Argument.IsNotNull(() => typeFactory);
             Argument.IsNotNull(() => directoryService);
+            Argument.IsNotNull(() => appDataService);
 
             _systemInfoService = systemInfoService;
             _screenCaptureService = screenCaptureService;
             _typeFactory = typeFactory;
             _directoryService = directoryService;
+            _appDataService = appDataService;
         }
 
         [Time]
@@ -98,7 +102,7 @@ namespace Orc.SupportPackage
                     {
                         zipFile.CompressionLevel = CompressionLevel.BestCompression;
 
-                        zipFile.AddDirectory(Catel.IO.Path.GetApplicationDataDirectory(), "AppData");
+                        zipFile.AddDirectory(_appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming), "AppData");
                         zipFile.AddDirectory(supportPackageContext.RootDirectory, string.Empty);
 
                         if (directories != null && directories.Length > 0)
