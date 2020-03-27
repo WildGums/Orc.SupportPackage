@@ -16,7 +16,7 @@
     <value>Maak ondersteuningspakket voor {0}</value>
   </data>
   <data name="SupportPackage_Explanation_01" xml:space="preserve">
-    <value>Hier kun je een ondersteundingspakket maken. Een ondersteuningspakket bevat informatie dat de ontwikkelaars kan helpen bij het analyseren van mogelijke problemen.</value>
+    <value>Hier kun je een ondersteuningspakket maken. Een ondersteuningspakket bevat informatie dat de ontwikkelaars kan helpen bij het analyseren van mogelijke problemen.</value>
   </data>
   <data name="SupportPackage_Explanation_02" xml:space="preserve">
     <value>Dit proces kan enkele seconden tot enkele minuten duren. Dit is afhankelijk van de hoeveelheid informatie die verzameld moet worden. Wacht geduldig af zolang de informatie verzameld wordt.</value>
@@ -34,33 +34,33 @@
     <value>Ondersteuningspakket documenten</value>
   </data>
   <data name="SupportPackage_SupportPackageFileType_SystemInformation_Title" xml:space="preserve">
-    <value>System information</value>
+    <value>Systeem informatie</value>
   </data>
   <data name="SupportPackage_SupportPackageFileType_ExecutableFiles_Title" xml:space="preserve">
-    <value>Executable files</value>
+    <value>Uitvoerbare bestanden</value>
   </data>
   <data name="SupportPackage_SupportPackageFileType_ConfigurationFiles_Title" xml:space="preserve">
-    <value>Configuration files</value>
+    <value>Configuratie bestanden</value>
   </data>
   <data name="SupportPackage_SupportPackageFileType_LogFiles_Title" xml:space="preserve">
-    <value>Log files</value>
+    <value>Log bestanden</value>
   </data>
   <data name="SupportPackage_SupportPackageFileType_TextFiles_Title" xml:space="preserve">
-    <value>Text files</value>
+    <value>Tekst bestanden</value>
   </data>
   <data name="SupportPackage_SupportPackageFileType_ImageFiles_Title" xml:space="preserve">
-    <value>Image files</value>
+    <value>Afbeeldingen</value>
   </data>
   <data name="SupportPackage_CustomPaths" xml:space="preserve">
-    <value>Custom paths</value>
+    <value>Uitzonderlijke paden</value>
   </data>
   <data name="SupportPackage_AddDirectory" xml:space="preserve">
-    <value>Add directory</value>
+    <value>Folder toevoegen</value>
   </data>
   <data name="SupportPackage_AddFile" xml:space="preserve">
-    <value>Add file</value>
+    <value>Bestand toevoegen</value>
   </data>
   <data name="SupportPackage_RemovePath" xml:space="preserve">
-    <value>Remove</value>
+    <value>Verwijderen</value>
   </data>
 </root>

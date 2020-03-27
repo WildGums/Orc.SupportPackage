@@ -12,7 +12,7 @@
         </trans-unit>
         <trans-unit id="SupportPackage_Explanation_01" translate="yes" xml:space="preserve">
           <source>Here you can create a support package. The support package will contain information that might help support engineers to analyze any possible issues.</source>
-          <target state="translated">Hier kun je een ondersteundingspakket maken. Een ondersteuningspakket bevat informatie dat de ontwikkelaars kan helpen bij het analyseren van mogelijke problemen.</target>
+          <target state="translated">Hier kun je een ondersteuningspakket maken. Een ondersteuningspakket bevat informatie dat de ontwikkelaars kan helpen bij het analyseren van mogelijke problemen.</target>
         </trans-unit>
         <trans-unit id="SupportPackage_Explanation_02" translate="yes" xml:space="preserve">
           <source>Depending on the amount of information to gather, this operation can take several seconds to a few minutes. Please be patient while the support package is being created.</source>
@@ -36,53 +36,43 @@
         </trans-unit>
         <trans-unit id="SupportPackage_SupportPackageFileType_SystemInformation_Title" translate="yes" xml:space="preserve">
           <source>System information</source>
-          <target state="needs-review-translation">System information</target>
-          <note from="MultilingualUpdate" priority="2">When the XLIFF file support was added via MAT, existing resources were found and auto-imported.  This source and target string contained the same value so the resource was marked as 'Needs review' to ensure the translation could be easily reviewed.</note>
+          <target state="translated">Systeem informatie</target>
         </trans-unit>
         <trans-unit id="SupportPackage_SupportPackageFileType_ExecutableFiles_Title" translate="yes" xml:space="preserve">
           <source>Executable files</source>
-          <target state="needs-review-translation">Executable files</target>
-          <note from="MultilingualUpdate" priority="2">When the XLIFF file support was added via MAT, existing resources were found and auto-imported.  This source and target string contained the same value so the resource was marked as 'Needs review' to ensure the translation could be easily reviewed.</note>
+          <target state="translated">Uitvoerbare bestanden</target>
         </trans-unit>
         <trans-unit id="SupportPackage_SupportPackageFileType_ConfigurationFiles_Title" translate="yes" xml:space="preserve">
           <source>Configuration files</source>
-          <target state="needs-review-translation">Configuration files</target>
-          <note from="MultilingualUpdate" priority="2">When the XLIFF file support was added via MAT, existing resources were found and auto-imported.  This source and target string contained the same value so the resource was marked as 'Needs review' to ensure the translation could be easily reviewed.</note>
+          <target state="translated">Configuratie bestanden</target>
         </trans-unit>
         <trans-unit id="SupportPackage_SupportPackageFileType_LogFiles_Title" translate="yes" xml:space="preserve">
           <source>Log files</source>
-          <target state="needs-review-translation">Log files</target>
-          <note from="MultilingualUpdate" priority="2">When the XLIFF file support was added via MAT, existing resources were found and auto-imported.  This source and target string contained the same value so the resource was marked as 'Needs review' to ensure the translation could be easily reviewed.</note>
+          <target state="translated">Log bestanden</target>
         </trans-unit>
         <trans-unit id="SupportPackage_SupportPackageFileType_TextFiles_Title" translate="yes" xml:space="preserve">
           <source>Text files</source>
-          <target state="needs-review-translation">Text files</target>
-          <note from="MultilingualUpdate" priority="2">When the XLIFF file support was added via MAT, existing resources were found and auto-imported.  This source and target string contained the same value so the resource was marked as 'Needs review' to ensure the translation could be easily reviewed.</note>
+          <target state="translated">Tekst bestanden</target>
         </trans-unit>
         <trans-unit id="SupportPackage_SupportPackageFileType_ImageFiles_Title" translate="yes" xml:space="preserve">
           <source>Image files</source>
-          <target state="needs-review-translation">Image files</target>
-          <note from="MultilingualUpdate" priority="2">When the XLIFF file support was added via MAT, existing resources were found and auto-imported.  This source and target string contained the same value so the resource was marked as 'Needs review' to ensure the translation could be easily reviewed.</note>
+          <target state="translated">Afbeeldingen</target>
         </trans-unit>
         <trans-unit id="SupportPackage_CustomPaths" translate="yes" xml:space="preserve">
           <source>Custom paths</source>
-          <target state="needs-review-translation">Custom paths</target>
-          <note from="MultilingualUpdate" priority="2">When the XLIFF file support was added via MAT, existing resources were found and auto-imported.  This source and target string contained the same value so the resource was marked as 'Needs review' to ensure the translation could be easily reviewed.</note>
+          <target state="translated">Uitzonderlijke paden</target>
         </trans-unit>
         <trans-unit id="SupportPackage_AddDirectory" translate="yes" xml:space="preserve">
           <source>Add directory</source>
-          <target state="needs-review-translation">Add directory</target>
-          <note from="MultilingualUpdate" priority="2">When the XLIFF file support was added via MAT, existing resources were found and auto-imported.  This source and target string contained the same value so the resource was marked as 'Needs review' to ensure the translation could be easily reviewed.</note>
+          <target state="translated">Folder toevoegen</target>
         </trans-unit>
         <trans-unit id="SupportPackage_AddFile" translate="yes" xml:space="preserve">
           <source>Add file</source>
-          <target state="needs-review-translation">Add file</target>
-          <note from="MultilingualUpdate" priority="2">When the XLIFF file support was added via MAT, existing resources were found and auto-imported.  This source and target string contained the same value so the resource was marked as 'Needs review' to ensure the translation could be easily reviewed.</note>
+          <target state="translated">Bestand toevoegen</target>
         </trans-unit>
         <trans-unit id="SupportPackage_RemovePath" translate="yes" xml:space="preserve">
           <source>Remove</source>
-          <target state="needs-review-translation">Remove</target>
-          <note from="MultilingualUpdate" priority="2">When the XLIFF file support was added via MAT, existing resources were found and auto-imported.  This source and target string contained the same value so the resource was marked as 'Needs review' to ensure the translation could be easily reviewed.</note>
+          <target state="translated">Verwijderen</target>
         </trans-unit>
       </group>
     </body>
