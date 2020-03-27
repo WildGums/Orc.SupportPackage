@@ -116,11 +116,16 @@ namespace Orc.SupportPackage.ViewModels
 
         private async Task OnAddDirectoryExecuteAsync()
         {
-            if (await _selectDirectoryService.DetermineDirectoryAsync())
+            var result = await _selectDirectoryService.DetermineDirectoryAsync(new DetermineDirectoryContext
             {
-                var directoryName = _selectDirectoryService.DirectoryName;
-                await AddCustomPathAsync(directoryName);
+            });
+
+            if (!result.Result)
+            {
+                return;
             }
+
+            await AddCustomPathAsync(result.DirectoryName);
         }
 
         private async Task AddCustomPathAsync(string path)
@@ -139,11 +144,16 @@ namespace Orc.SupportPackage.ViewModels
 
         private async Task OnAddFileExecuteAsync()
         {
-            if (await _openFileService.DetermineFileAsync())
+            var result = await _openFileService.DetermineFileAsync(new DetermineOpenFileContext
             {
-                var fileName = _openFileService.FileName;
-                await AddCustomPathAsync(fileName);
+            });
+
+            if (!result.Result)
+            {
+                return;
             }
+
+            await AddCustomPathAsync(result.FileName);
         }
 
         public Command RemovePathCommand { get; }
@@ -190,35 +200,39 @@ namespace Orc.SupportPackage.ViewModels
         /// </summary>
         private async Task OnCreateSupportPackageExecuteAsync()
         {
-            _saveFileService.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), string.Format("{0}_{1}.spkg", _assemblyTitle, DateTime.Now.ToString("yyyyMMdd_HHmmss")));
-            _saveFileService.Filter = string.Format("{0}|*.spkg", _languageService.GetString("SupportPackage_SupportPackageFiles"));
-
-            if (await _saveFileService.DetermineFileAsync())
+            var result = await _saveFileService.DetermineFileAsync(new DetermineSaveFileContext
             {
-                var fileName = _saveFileService.FileName;
-                var supportPackageFileSystemArtifacts = SupportPackageFileSystemArtifacts.ToList();
-                supportPackageFileSystemArtifacts.Add(new CustomPathsPackageFileSystemArtifact(_languageService.GetString("SupportPackage_CustomPaths"), CustomPaths.ToList(), IncludeCustomPathsInSupportPackage));
+                FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), string.Format("{0}_{1}.spkg", _assemblyTitle, DateTime.Now.ToString("yyyyMMdd_HHmmss"))),
+                Filter = string.Format("{0}|*.spkg", _languageService.GetString("SupportPackage_SupportPackageFiles"))
+            });
 
-                using (new DisposableToken(
-                    null,
-                    x =>
-                        {
-                            _isCreatingSupportPackage = true;
-                            _pleaseWaitService.Push();
-                        },
-                    x =>
-                        {
-                            _pleaseWaitService.Pop();
-                            _isCreatingSupportPackage = false;
-                        }))
-                {
-                    await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, supportPackageFileSystemArtifacts), true);
-
-                    LastSupportPackageFileName = fileName;
-                }
-
-                _isSupportPackageCreated = true;
+            if (!result.Result)
+            {
+                return;
             }
+
+            var fileName = result.FileName;
+            var supportPackageFileSystemArtifacts = SupportPackageFileSystemArtifacts.ToList();
+            supportPackageFileSystemArtifacts.Add(new CustomPathsPackageFileSystemArtifact(_languageService.GetString("SupportPackage_CustomPaths"), CustomPaths.ToList(), IncludeCustomPathsInSupportPackage));
+
+            using (new DisposableToken(null,
+                x =>
+                {
+                    _isCreatingSupportPackage = true;
+                    _pleaseWaitService.Push();
+                },
+                x =>
+                {
+                    _pleaseWaitService.Pop();
+                    _isCreatingSupportPackage = false;
+                }))
+            {
+                await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, supportPackageFileSystemArtifacts), true);
+
+                LastSupportPackageFileName = fileName;
+            }
+
+            _isSupportPackageCreated = true;
         }
 
         /// <summary>
