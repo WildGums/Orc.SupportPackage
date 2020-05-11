@@ -28,7 +28,7 @@ namespace Orc.SupportPackage.ViewModels
 
     public class SupportPackageViewModel : ViewModelBase
     {
-        private static ILog Log = LogManager.GetCurrentClassLogger();
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         #region Fields
         private readonly string _assemblyTitle;
