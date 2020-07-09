@@ -51,14 +51,23 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 
-                <CheckBox Grid.Row="0" Grid.Column="0" IsChecked="{Binding IncludeCustomPathsInSupportPackage}" Content="{catel:LanguageBinding SupportPackage_CustomPaths}"/>
-                <ListBox Grid.Row="1" Grid.Column="0" ItemsSource="{Binding CustomPaths}" Height="200" IsEnabled="{Binding IncludeCustomPathsInSupportPackage}"  SelectionMode="Multiple">
+                <CheckBox Grid.Row="0" Grid.Column="0" 
+                          IsChecked="{Binding IncludeCustomPathsInSupportPackage}" 
+                          Content="{catel:LanguageBinding SupportPackage_CustomPaths}"/>
+                
+                <ListBox Grid.Row="1" Grid.Column="0" 
+                         ItemsSource="{Binding CustomPaths}" 
+                         Height="200" IsEnabled="{Binding IncludeCustomPathsInSupportPackage}"  
+                         SelectionMode="Multiple">
                     <xamlbehaviors:Interaction.Triggers>
                         <xamlbehaviors:EventTrigger EventName="SelectionChanged">
-                            <catel:EventToCommand Command="{Binding SelectionChangedCommand}" DisableAssociatedObjectOnCannotExecute="False" PassEventArgsToCommand="True"/>
+                            <catel:EventToCommand Command="{Binding SelectionChangedCommand}" 
+                                                  DisableAssociatedObjectOnCannotExecute="False" 
+                                                  PassEventArgsToCommand="True"/>
                         </xamlbehaviors:EventTrigger>
                     </xamlbehaviors:Interaction.Triggers>
                 </ListBox>
+                
                 <StackPanel Grid.Row="1" Grid.Column="1" IsEnabled="{Binding IncludeCustomPathsInSupportPackage}">
                     <Button VerticalAlignment="Top" Content="{catel:LanguageBinding SupportPackage_AddDirectory}" Command="{Binding AddDirectoryCommand}"/>
                     <Button VerticalAlignment="Top" Content="{catel:LanguageBinding SupportPackage_AddFile}" Command="{Binding AddFileCommand}"/>
