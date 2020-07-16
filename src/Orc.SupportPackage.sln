@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orc.SupportPackage", "Orc.S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orc.SupportPackage.Xaml", "Orc.SupportPackage.Xaml\Orc.SupportPackage.Xaml.csproj", "{36E2D6F7-069C-4B93-8AA0-E41CA2A3C969}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orc.SupportPackage.Example.NET", "Orc.SupportPackage.Example.NET\Orc.SupportPackage.Example.NET.csproj", "{5BDAA807-0DC9-4A0C-9A0D-8F6B7CDFEDA1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orc.SupportPackage.Example", "Orc.SupportPackage.Example\Orc.SupportPackage.Example.csproj", "{5BDAA807-0DC9-4A0C-9A0D-8F6B7CDFEDA1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Orc.SupportPackage.Tests", "Orc.SupportPackage.Tests\Orc.SupportPackage.Tests.csproj", "{46007934-32E6-408A-990E-32D30802AC09}"
 EndProject

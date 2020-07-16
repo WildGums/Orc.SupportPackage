@@ -1,12 +1,12 @@
-﻿[assembly: System.Resources.NeutralResourcesLanguageAttribute("en-US")]
-[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Orc.SupportPackage.Tests")]
-[assembly: System.Runtime.Versioning.TargetFrameworkAttribute(".NETFramework,Version=v4.6", FrameworkDisplayName=".NET Framework 4.6")]
-[assembly: System.Windows.Markup.XmlnsDefinitionAttribute("http://schemas.wildgums.com/orc/supportpackage", "Orc.SupportPackage")]
-[assembly: System.Windows.Markup.XmlnsDefinitionAttribute("http://schemas.wildgums.com/orc/supportpackage", "Orc.SupportPackage.Views")]
-[assembly: System.Windows.Markup.XmlnsPrefixAttribute("http://schemas.wildgums.com/orc/supportpackage", "orcsupportpackage")]
-[assembly: System.Windows.ThemeInfoAttribute(System.Windows.ResourceDictionaryLocation.None, System.Windows.ResourceDictionaryLocation.SourceAssembly)]
-public class static LoadAssembliesOnStartup { }
-public class static ModuleInitializer
+﻿[assembly: System.Resources.NeutralResourcesLanguage("en-US")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Orc.SupportPackage.Tests")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v3.1", FrameworkDisplayName="")]
+[assembly: System.Windows.Markup.XmlnsDefinition("http://schemas.wildgums.com/orc/supportpackage", "Orc.SupportPackage")]
+[assembly: System.Windows.Markup.XmlnsDefinition("http://schemas.wildgums.com/orc/supportpackage", "Orc.SupportPackage.Views")]
+[assembly: System.Windows.Markup.XmlnsPrefix("http://schemas.wildgums.com/orc/supportpackage", "orcsupportpackage")]
+[assembly: System.Windows.ThemeInfo(System.Windows.ResourceDictionaryLocation.None, System.Windows.ResourceDictionaryLocation.SourceAssembly)]
+public static class LoadAssembliesOnStartup { }
+public static class ModuleInitializer
 {
     public static void Initialize() { }
 }
@@ -37,12 +37,12 @@ namespace Orc.SupportPackage
     }
     public class SupportPackageDirectory : Orc.SupportPackage.SupportPackageFileSystemArtifact
     {
-        public SupportPackageDirectory(string title, string directoryName, bool includeInSupportPackage = True) { }
+        public SupportPackageDirectory(string title, string directoryName, bool includeInSupportPackage = true) { }
         public string DirectoryName { get; }
     }
     public class SupportPackageFileNamePattern : Orc.SupportPackage.SupportPackageFileSystemArtifact
     {
-        public SupportPackageFileNamePattern(string title, string[] fileNamePatterns, bool includeInSupportPackage = True) { }
+        public SupportPackageFileNamePattern(string title, string[] fileNamePatterns, bool includeInSupportPackage = true) { }
         public string[] FileNamePatterns { get; }
     }
     public class SupportPackageFileSystemArtifact

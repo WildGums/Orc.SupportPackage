@@ -28,7 +28,7 @@ namespace Orc.SupportPackage.ViewModels
 
     public class SupportPackageViewModel : ViewModelBase
     {
-        private static ILog Log = LogManager.GetCurrentClassLogger();
+        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         #region Fields
         private readonly string _assemblyTitle;
@@ -255,7 +255,11 @@ namespace Orc.SupportPackage.ViewModels
         private void OnOpenDirectoryExecute()
         {
             var directory = Path.GetDirectoryName(LastSupportPackageFileName);
-            _processService.StartProcess(directory);
+            _processService.StartProcess(new ProcessContext
+            {
+                FileName = "explorer.exe",
+                Arguments = directory
+            });
         }
 
         #endregion
