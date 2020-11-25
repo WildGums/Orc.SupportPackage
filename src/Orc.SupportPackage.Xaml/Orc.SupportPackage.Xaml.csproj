@@ -1,6 +1,6 @@
 ﻿<Project Sdk="MSBuild.Sdk.Extras">
   <PropertyGroup>
-    <TargetFrameworks>net46;net47;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net5.0-windows</TargetFrameworks>
     <AssemblyName>Orc.SupportPackage.Xaml</AssemblyName>
     <RootNamespace>Orc.SupportPackage</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
