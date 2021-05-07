@@ -105,7 +105,7 @@ namespace Orc.SupportPackage
                         zipFile.AddDirectory(_appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming), "AppData");
                         zipFile.AddDirectory(supportPackageContext.RootDirectory, string.Empty);
 
-                        if (directories != null && directories.Length > 0)
+                        if (directories is not null && directories.Length > 0)
                         {
                             foreach (var directory in directories)
                             {
@@ -123,7 +123,7 @@ namespace Orc.SupportPackage
                             }
                         }
 
-                        if (excludeFileNamePatterns != null && excludeFileNamePatterns.Length > 0)
+                        if (excludeFileNamePatterns is not null && excludeFileNamePatterns.Length > 0)
                         {
                             Log.Info("Removing excluded files...");
 
@@ -161,7 +161,7 @@ namespace Orc.SupportPackage
             // Note: we cannot use InvokeAsync here because it might cause deadlocks. Therefore we just dispatcher and 
             // hope it's ready before the package is created. Worst case it doesn't contain the screenshot.
             var application = Application.Current;
-            if (application == null)
+            if (application is null)
             {
                 Log.Debug("Application.Current is null, cannot create screenshot");
                 return;
@@ -173,7 +173,7 @@ namespace Orc.SupportPackage
             dispatcher.BeginInvoke(new Action(() =>
             {
                 var mainWindow = application.MainWindow;
-                if (mainWindow == null)
+                if (mainWindow is null)
                 {
                     Log.Debug("Application.Current.MainWindow is null, cannot create screenshot");
                     return;
