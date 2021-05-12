@@ -14,7 +14,7 @@
 
         <orctheming:ThemeSwitcherView />
 
-        <orccontrols:TabControl>
+        <TabControl>
             <TabItem Header="Screen capture">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -44,7 +44,7 @@
                     <Button Content="Save support package as" Margin="15  15 15 15" Command="{Binding SavePackage}"/>
                 </Grid>
             </TabItem>
-        </orccontrols:TabControl>
+        </TabControl>
     </orccontrols:StackGrid>
 </catel:Window>
 
