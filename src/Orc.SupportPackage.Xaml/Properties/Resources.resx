@@ -121,10 +121,10 @@
     <value>Create support package for {0}</value>
   </data>
   <data name="SupportPackage_Explanation_01" xml:space="preserve">
-    <value>Here you can create a support package. The support package will contain information that might help support engineers to analyze any possible issues.</value>
+    <value>Here you can create a support package which will assist support engineers in providing you with tech support. The support package will contain information that might help support engineers to analyze any possible issues.</value>
   </data>
   <data name="SupportPackage_Explanation_02" xml:space="preserve">
-    <value>Depending on the amount of information to gather, this operation can take several seconds to a few minutes. Please be patient while the support package is being created.</value>
+    <value>Depending on the amount of information included, this operation can take several seconds to a few minutes. Please be patient while the support package is being created.</value>
   </data>
   <data name="SupportPackage_Explanation_03" xml:space="preserve">
     <value>Note that support packages might contain sensitive information so make sure you only share this information with a support engineer.</value>

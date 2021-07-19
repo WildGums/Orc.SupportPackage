@@ -106,7 +106,7 @@ namespace Orc.SupportPackage.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Here you can create a support package. The support package will contain information that might help support engineers to analyze any possible issues..
+        ///   Looks up a localized string similar to Here you can create a support package which will assist support engineers in providing you with tech support. The support package will contain information that might help support engineers to analyze any possible issues..
         /// </summary>
         internal static string SupportPackage_Explanation_01 {
             get {
@@ -115,7 +115,7 @@ namespace Orc.SupportPackage.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Depending on the amount of information to gather, this operation can take several seconds to a few minutes. Please be patient while the support package is being created..
+        ///   Looks up a localized string similar to Depending on the amount of information included, this operation can take several seconds to a few minutes. Please be patient while the support package is being created..
         /// </summary>
         internal static string SupportPackage_Explanation_02 {
             get {
