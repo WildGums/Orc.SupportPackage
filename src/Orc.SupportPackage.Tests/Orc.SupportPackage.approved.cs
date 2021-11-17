@@ -49,4 +49,9 @@ namespace Orc.SupportPackage
         public SupportPackageService(Orc.SystemInfo.ISystemInfoService systemInfoService, Orc.SupportPackage.IScreenCaptureService screenCaptureService, Catel.IoC.ITypeFactory typeFactory, Orc.FileSystem.IDirectoryService directoryService, Catel.Services.IAppDataService appDataService) { }
         public System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns) { }
     }
+    public static class ZipArchiveExtensions
+    {
+        public static void CreateEntryFromAny(this System.IO.Compression.ZipArchive archive, string sourceName, string entryName, System.IO.Compression.CompressionLevel compressionLevel = 0) { }
+        public static void CreateEntryFromDirectory(this System.IO.Compression.ZipArchive archive, string sourceDirName, string entryName, System.IO.Compression.CompressionLevel compressionLevel) { }
+    }
 }
