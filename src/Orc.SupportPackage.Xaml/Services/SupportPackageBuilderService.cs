@@ -82,7 +82,7 @@ namespace Orc.SupportPackage
             var result = await _supportPackageService.CreateSupportPackageAsync(fileName, directories, excludeFileNamePatterns);
 
             var customDataDirectoryName = "CustomData";
-            using (var fileStream = _fileService.Create(fileName))
+            using (var fileStream = new FileStream(fileName, FileMode.OpenOrCreate))
             {
                 using (var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Update))
                 {

@@ -95,7 +95,7 @@ namespace Orc.SupportPackage
                             Log.Warning(ex, "Failed to gather support package info from '{0}'. Info will be excluded from the package", supportPackageProviderType.FullName);
                         }
                     }
-                    using (var fileStream = new FileStream(zipFileName, FileMode.Create))
+                    using (var fileStream = new FileStream(zipFileName, FileMode.OpenOrCreate))
                     {
                         using (var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Update))
                         {
@@ -135,6 +135,8 @@ namespace Orc.SupportPackage
                                     }
                                 }
                             }
+
+                            await fileStream.FlushAsync();
                         }
                     }
                 }
