@@ -56,7 +56,7 @@ namespace Orc.SupportPackage
         }
 
         [Time]
-        public async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns)
+        public virtual async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns)
         {
             Argument.IsNotNullOrEmpty(() => zipFileName);
 

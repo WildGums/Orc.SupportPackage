@@ -43,16 +43,17 @@ namespace Orc.SupportPackage
         #endregion
 
         #region Methods
-        public async Task<bool> CreateSupportPackageAsync(string fileName, List<SupportPackageFileSystemArtifact> artifacts)
+        public virtual async Task<bool> CreateSupportPackageAsync(string fileName, List<SupportPackageFileSystemArtifact> artifacts)
         {
             Argument.IsNotNullOrWhitespace(() => fileName);
             Argument.IsNotNull(() => artifacts);
 
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
             builder.AppendLine("# Support package options");
             builder.AppendLine();
             builder.AppendLine("## Content providers");
             builder.AppendLine();
+
             foreach (var supportPackageFileSystemArtifact in artifacts)
             {
                 builder.Append(supportPackageFileSystemArtifact.IncludeInSupportPackage ? "- [X] " : "- [ ] ");
@@ -65,6 +66,7 @@ namespace Orc.SupportPackage
             builder.AppendLine();
             builder.AppendLine("## Exclude file name patterns");
             builder.AppendLine();
+
             foreach (var excludeFileNamePattern in excludeFileNamePatterns)
             {
                 builder.AppendLine("- " + excludeFileNamePattern);
@@ -139,6 +141,7 @@ namespace Orc.SupportPackage
                     builder.AppendLine("- Total: " + zipArchive.Entries.Count);
                     builder.AppendLine("- Files: " + zipArchive.Entries.Count(entry => !entry.Name.EndsWith("/")));
                     builder.AppendLine("- Directories: " + zipArchive.Entries.Count(entry => entry.Name.EndsWith("/")));
+
                     var builderEntry = zipArchive.CreateEntry("SupportPackageOptions.txt");
                     using (var streamWriter = new StreamWriter(builderEntry.Open()))
                     {
@@ -148,6 +151,7 @@ namespace Orc.SupportPackage
                     await fileStream.FlushAsync();
                 }
             }
+
             return result;
         }
 

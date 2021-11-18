@@ -33,7 +33,7 @@ namespace Orc.SupportPackage
     public class SupportPackageBuilderService : Orc.SupportPackage.ISupportPackageBuilderService
     {
         public SupportPackageBuilderService(Orc.SupportPackage.ISupportPackageService supportPackageService, Orc.FileSystem.IFileService fileService) { }
-        public System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string fileName, System.Collections.Generic.List<Orc.SupportPackage.SupportPackageFileSystemArtifact> artifacts) { }
+        public virtual System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string fileName, System.Collections.Generic.List<Orc.SupportPackage.SupportPackageFileSystemArtifact> artifacts) { }
     }
     public class SupportPackageDirectory : Orc.SupportPackage.SupportPackageFileSystemArtifact
     {
