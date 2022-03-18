@@ -143,6 +143,7 @@ namespace Orc.SupportPackage
                     builder.AppendLine("- Directories: " + zipArchive.Entries.Count(entry => entry.Name.EndsWith("/")));
 
                     var builderEntry = zipArchive.CreateEntry("SupportPackageOptions.txt");
+
                     using (var streamWriter = new StreamWriter(builderEntry.Open()))
                     {
                         await streamWriter.WriteAsync(builder.ToString());
