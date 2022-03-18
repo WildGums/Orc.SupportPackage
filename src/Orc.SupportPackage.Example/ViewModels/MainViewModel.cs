@@ -1,11 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="MainViewModel.cs" company="WildGums">
-//   Copyright (c) 2008 - 2015 WildGums. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------------------------------------------------
-
-
-namespace Orc.SupportPackage.Example.ViewModels
+﻿namespace Orc.SupportPackage.Example.ViewModels
 {
     using System;
     using System.Drawing.Imaging;
@@ -24,14 +17,14 @@ namespace Orc.SupportPackage.Example.ViewModels
     public class MainViewModel : ViewModelBase
     {
         // without this field picture doesn't refresh
-        private static int _screenshotIndex;
+        private static int ScreenshotIndex;
 
         private readonly IScreenCaptureService _screenCaptureService;
         private readonly ISystemInfoService _systemInfoService;
         private readonly IUIVisualizerService _uiVisualizerService;
         private readonly IAppDataService _appDataService;
 
-        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService, 
+        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService,
             IUIVisualizerService uiVisualizerService, IAppDataService appDataService)
         {
             Argument.IsNotNull(() => screenCaptureService);
@@ -66,9 +59,13 @@ namespace Orc.SupportPackage.Example.ViewModels
             ScreenPic = null;
 
             var mainWindow = Application.Current.MainWindow;
+
+#pragma warning disable IDISP001
             var image = _screenCaptureService.CaptureWindowImage(mainWindow);
+#pragma warning restore IDISP001
+
             var applicationDataDirectory = _appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming);
-            var filename = Path.Combine(applicationDataDirectory, string.Format("screenshot{0}.jpg", _screenshotIndex++));
+            var filename = Path.Combine(applicationDataDirectory, string.Format("screenshot{0}.jpg", ScreenshotIndex++));
             image.Save(filename, ImageFormat.Jpeg);
 
             var screenPic = new BitmapImage();

@@ -8,27 +8,25 @@
 namespace Orc.SupportPackage
 {
     using System;
-    using System.Collections.Generic;
     using System.Drawing.Imaging;
     using System.IO;
+    using System.IO.Compression;
     using System.Linq;
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Xml.Serialization;
-    using SystemInfo;
     using Catel;
     using Catel.Collections;
     using Catel.IoC;
     using Catel.Logging;
     using Catel.Reflection;
+    using Catel.Services;
     using Catel.Threading;
     using FileSystem;
-    using Ionic.Zip;
-    using Ionic.Zlib;
     using MethodTimer;
-    using Catel.Services;
+    using SystemInfo;
 
     public class SupportPackageService : ISupportPackageService
     {
@@ -40,7 +38,7 @@ namespace Orc.SupportPackage
         private readonly IAppDataService _appDataService;
         private readonly ISystemInfoService _systemInfoService;
 
-        public SupportPackageService(ISystemInfoService systemInfoService, 
+        public SupportPackageService(ISystemInfoService systemInfoService,
             IScreenCaptureService screenCaptureService, ITypeFactory typeFactory,
             IDirectoryService directoryService, IAppDataService appDataService)
         {
@@ -58,7 +56,7 @@ namespace Orc.SupportPackage
         }
 
         [Time]
-        public async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns)
+        public virtual async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns)
         {
             Argument.IsNotNullOrEmpty(() => zipFileName);
 
@@ -97,49 +95,49 @@ namespace Orc.SupportPackage
                             Log.Warning(ex, "Failed to gather support package info from '{0}'. Info will be excluded from the package", supportPackageProviderType.FullName);
                         }
                     }
-
-                    using (var zipFile = new ZipFile())
+                    using (var fileStream = new FileStream(zipFileName, FileMode.OpenOrCreate))
                     {
-                        zipFile.CompressionLevel = CompressionLevel.BestCompression;
-
-                        zipFile.AddDirectory(_appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming), "AppData");
-                        zipFile.AddDirectory(supportPackageContext.RootDirectory, string.Empty);
-
-                        if (directories is not null && directories.Length > 0)
+                        using (var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Update))
                         {
-                            foreach (var directory in directories)
-                            {
-                                if (!_directoryService.Exists(directory))
-                                {
-                                    Log.Warning($"Directory '{directory}' does not exist, skipping");
-                                    continue;
-                                }
+                            zipArchive.CreateEntryFromDirectory(_appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming), "AppData", CompressionLevel.Optimal);
+                            zipArchive.CreateEntryFromDirectory(supportPackageContext.RootDirectory, string.Empty, CompressionLevel.Optimal);
 
-                                var directoryPathInArchive = directory.TrimEnd('\\').Split('\\').LastOrDefault();
-                                if (!string.IsNullOrEmpty(directoryPathInArchive))
+                            if (directories is not null && directories.Length > 0)
+                            {
+                                foreach (var directory in directories)
                                 {
-                                    zipFile.AddDirectory(directory, directoryPathInArchive);
+                                    if (!_directoryService.Exists(directory))
+                                    {
+                                        Log.Warning($"Directory '{directory}' does not exist, skipping");
+                                        continue;
+                                    }
+
+                                    var directoryPathInArchive = directory.TrimEnd('\\').Split('\\').LastOrDefault();
+                                    if (!string.IsNullOrEmpty(directoryPathInArchive))
+                                    {
+                                        zipArchive.CreateEntryFromDirectory(directory, string.Empty, CompressionLevel.Optimal);
+                                    }
                                 }
                             }
-                        }
 
-                        if (excludeFileNamePatterns is not null && excludeFileNamePatterns.Length > 0)
-                        {
-                            Log.Info("Removing excluded files...");
-
-                            var excludeFileNameRegexes = excludeFileNamePatterns.Select(s => new Regex(s.Replace("*", ".*").Replace(".", "\\.") + "$", RegexOptions.IgnoreCase | RegexOptions.Compiled)).ToList();
-
-                            var zipEntries = zipFile.Entries.ToList();
-                            foreach (var zipEntry in zipEntries)
+                            if (excludeFileNamePatterns is not null && excludeFileNamePatterns.Length > 0)
                             {
-                                if (excludeFileNameRegexes.Any(regex => regex.IsMatch(zipEntry.FileName)))
+                                Log.Info("Removing excluded files...");
+
+                                var excludeFileNameRegexes = excludeFileNamePatterns.Select(s => new Regex(s.Replace("*", ".*").Replace(".", "\\.") + "$", RegexOptions.IgnoreCase | RegexOptions.Compiled)).ToList();
+
+                                var zipEntries = zipArchive.Entries.ToList();
+                                foreach (var zipEntry in zipEntries)
                                 {
-                                    zipFile.RemoveEntry(zipEntry);
+                                    if (excludeFileNameRegexes.Any(regex => regex.IsMatch(zipEntry.FullName)))
+                                    {
+                                        zipEntry.Delete();
+                                    }
                                 }
                             }
-                        }
 
-                        zipFile.Save(zipFileName);
+                            await fileStream.FlushAsync();
+                        }
                     }
                 }
 
