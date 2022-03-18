@@ -24,7 +24,7 @@ namespace Orc.SupportPackage.Example.ViewModels
     public class MainViewModel : ViewModelBase
     {
         // without this field picture doesn't refresh
-        private static int _screenshotIndex;
+        private static int ScreenshotIndex;
 
         private readonly IScreenCaptureService _screenCaptureService;
         private readonly ISystemInfoService _systemInfoService;
@@ -66,9 +66,13 @@ namespace Orc.SupportPackage.Example.ViewModels
             ScreenPic = null;
 
             var mainWindow = Application.Current.MainWindow;
+
+#pragma warning disable IDISP001
             var image = _screenCaptureService.CaptureWindowImage(mainWindow);
+#pragma warning restore IDISP001
+
             var applicationDataDirectory = _appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming);
-            var filename = Path.Combine(applicationDataDirectory, string.Format("screenshot{0}.jpg", _screenshotIndex++));
+            var filename = Path.Combine(applicationDataDirectory, string.Format("screenshot{0}.jpg", ScreenshotIndex++));
             image.Save(filename, ImageFormat.Jpeg);
 
             var screenPic = new BitmapImage();
