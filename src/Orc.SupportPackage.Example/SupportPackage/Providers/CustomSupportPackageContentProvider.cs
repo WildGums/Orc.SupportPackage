@@ -14,16 +14,23 @@ namespace Orc.SupportPackage.Example.SupportPackage.Providers
 
     public sealed class CustomSupportPackageContentProvider : ISupportPackageContentProvider
     {
-        #region Methods
         public IEnumerable<SupportPackageFileSystemArtifact> GetSupportPackageFileSystemArtifacts()
         {
-            var demoProjectPath = Path.Combine(this.GetType().GetAssemblyEx().GetDirectory(), "Orc.SupportPackage.Example");
+            var demoProjectPath = Path.Combine(GetType().GetAssemblyEx().GetDirectory(), "Orc.SupportPackage.Example");
             Directory.CreateDirectory(demoProjectPath);
-            File.Create(Path.Combine(demoProjectPath, "Orc.SupportPackage.Example.demoproject")).Flush();
-            File.Create(Path.Combine(demoProjectPath, "Orc.SupportPackage.Example.demoproject.data")).Flush();
+
+
+            using (var file = File.Create(Path.Combine(demoProjectPath, "Orc.SupportPackage.Example.demoproject")))
+            {
+                file.Flush();
+            }
+
+            using (var file = File.Create(Path.Combine(demoProjectPath, "Orc.SupportPackage.Example.demoproject.data")))
+            {
+                file.Flush();
+            }
+
             yield return new SupportPackageDirectory("Orc.SupportPackage.Example Demo Directory", demoProjectPath);
         }
-
-        #endregion
     }
 }
