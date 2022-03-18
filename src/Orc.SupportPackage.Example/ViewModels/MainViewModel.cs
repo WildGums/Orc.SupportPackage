@@ -1,11 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="MainViewModel.cs" company="WildGums">
-//   Copyright (c) 2008 - 2015 WildGums. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------------------------------------------------
-
-
-namespace Orc.SupportPackage.Example.ViewModels
+﻿namespace Orc.SupportPackage.Example.ViewModels
 {
     using System;
     using System.Drawing.Imaging;
@@ -31,7 +24,7 @@ namespace Orc.SupportPackage.Example.ViewModels
         private readonly IUIVisualizerService _uiVisualizerService;
         private readonly IAppDataService _appDataService;
 
-        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService, 
+        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService,
             IUIVisualizerService uiVisualizerService, IAppDataService appDataService)
         {
             Argument.IsNotNull(() => screenCaptureService);
