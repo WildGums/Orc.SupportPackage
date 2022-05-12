@@ -8,6 +8,7 @@
 namespace Orc.SupportPackage
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using Catel;
     using Catel.Logging;
@@ -19,6 +20,9 @@ namespace Orc.SupportPackage
 
         private readonly string _rootDirectory;
 
+        private readonly List<string> _artifactsDirectories = new();
+        private readonly List<string> _excludefileNamePatterns = new();
+
         public SupportPackageContext()
         {
             var assembly = AssemblyHelper.GetEntryAssembly();
@@ -29,7 +33,11 @@ namespace Orc.SupportPackage
             Directory.CreateDirectory(_rootDirectory);
         }
 
-        public string RootDirectory { get { return _rootDirectory; } }
+        public string RootDirectory => _rootDirectory;
+
+        public IReadOnlyCollection<string> ExcludeFileNamePatterns => _excludefileNamePatterns;
+
+        public IReadOnlyCollection<string> ArtifactsDirectories => _artifactsDirectories;
 
         public string GetDirectory(string relativeDirectoryName)
         {
@@ -54,6 +62,16 @@ namespace Orc.SupportPackage
             }
 
             return fullPath;
+        }
+
+        public void AddArtifactDirectories(string[] directories)
+        {
+            _artifactsDirectories.AddRange(directories);
+        }
+
+        public void AddExcludeFileNamePatterns(string[] fileNamePatterns)
+        {
+            _excludefileNamePatterns.AddRange(fileNamePatterns);
         }
 
         protected override void DisposeManaged()
