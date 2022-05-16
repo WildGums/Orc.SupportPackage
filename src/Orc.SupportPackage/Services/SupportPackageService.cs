@@ -127,7 +127,7 @@ namespace Orc.SupportPackage
                                
                                 await _encryptionService.EncryptAsync(memoryStream, fileStream, new EncryptionContext
                                 {
-                                    PassPhrase = "wtDtCZd4%pA=F=Dp"
+                                    PublicKey = "wtDtCZd4%pA=F=Dp"
                                 });
                             }
                         }

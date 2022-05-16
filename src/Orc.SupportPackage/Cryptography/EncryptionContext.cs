@@ -14,23 +14,31 @@
         {
             Argument.IsNotNull(() => context);
 
-            PassPhrase = context.PassPhrase;
+            PublicKey = context.PublicKey;
             SaltValue = context.SaltValue;
             PasswordIterations = context.PasswordIterations;
             InitVector = context.InitVector;
             KeySize = context.KeySize;
         }
 
-        public EncryptionContext(string passPhrase, string saltValue, int? passwordIterations, string initVector, int? keySize)
+        public EncryptionContext(string publicKey, string saltValue, int? passwordIterations, string initVector, int? keySize)
         {
-            PassPhrase = passPhrase;
+            PublicKey = publicKey;
             SaltValue = saltValue;
             PasswordIterations = passwordIterations;
             InitVector = initVector;
             KeySize = keySize;
         }
 
-        public string PassPhrase { get; set; }
+        /// <summary>
+        /// Base64-encrypted xml print of generated public key
+        /// </summary>
+        public string PublicKey { get; set; }
+
+        /// <summary>
+        /// Path to private key on disk
+        /// </summary>
+        public string PrivateKeyPath { get; set; }
 
         public string SaltValue { get; set; }
 
