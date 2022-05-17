@@ -35,8 +35,6 @@ namespace Orc.SupportPackage.Example
 
             this.ApplyTheme();
 
-            Globals.EnableEncryption = true;
-
             base.OnStartup(e);
         }
     }

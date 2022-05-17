@@ -10,6 +10,7 @@ namespace Orc.SupportPackage
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Text;
     using Catel;
     using Catel.Logging;
     using Catel.Reflection;
@@ -22,6 +23,7 @@ namespace Orc.SupportPackage
 
         private readonly List<string> _artifactsDirectories = new();
         private readonly List<string> _excludefileNamePatterns = new();
+        private readonly List<string> _customFileSystemPaths = new();
 
         public SupportPackageContext()
         {
@@ -35,9 +37,17 @@ namespace Orc.SupportPackage
 
         public string RootDirectory => _rootDirectory;
 
+        public string ZipFileName { get; set; }
+
+        public bool EnableEncryption { get; set; }
+
+        public StringBuilder DescriptionBuilder { get; set; }
+
         public IReadOnlyCollection<string> ExcludeFileNamePatterns => _excludefileNamePatterns;
 
         public IReadOnlyCollection<string> ArtifactsDirectories => _artifactsDirectories;
+
+        public IReadOnlyCollection<string> CustomFileSystemPaths => _customFileSystemPaths;
 
         public string GetDirectory(string relativeDirectoryName)
         {
@@ -66,12 +76,32 @@ namespace Orc.SupportPackage
 
         public void AddArtifactDirectories(string[] directories)
         {
+            if (directories is null)
+            {
+                return;
+            }
+
             _artifactsDirectories.AddRange(directories);
         }
 
         public void AddExcludeFileNamePatterns(string[] fileNamePatterns)
         {
+            if (fileNamePatterns is null)
+            {
+                return;
+            }
+
             _excludefileNamePatterns.AddRange(fileNamePatterns);
+        }
+
+        public void AddCustomFileSystemPaths(string[] fileSystemPaths)
+        {
+            if (fileSystemPaths is null)
+            {
+                return;
+            }
+
+            _customFileSystemPaths.AddRange(fileSystemPaths);
         }
 
         protected override void DisposeManaged()
@@ -83,6 +113,11 @@ namespace Orc.SupportPackage
                 if (Directory.Exists(_rootDirectory))
                 {
                     Directory.Delete(_rootDirectory, true);
+                }
+
+                if (DescriptionBuilder is not null)
+                {
+                    DescriptionBuilder.Clear();
                 }
             }
             catch (Exception ex)

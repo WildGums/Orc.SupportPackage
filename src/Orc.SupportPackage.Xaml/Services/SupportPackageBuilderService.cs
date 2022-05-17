@@ -7,10 +7,7 @@
 
 namespace Orc.SupportPackage
 {
-    using System;
     using System.Collections.Generic;
-    using System.IO;
-    using System.IO.Compression;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -43,6 +40,18 @@ namespace Orc.SupportPackage
         #region Methods
         public virtual async Task<bool> CreateSupportPackageAsync(string fileName, List<SupportPackageFileSystemArtifact> artifacts)
         {
+            return await CreateSupportPackageAsync(new SupportPackageBuilderContext
+            {
+                FileName = fileName,
+                Artifacts = artifacts,
+            });
+        }
+
+        public async Task<bool> CreateSupportPackageAsync(SupportPackageBuilderContext context)
+        {
+            var fileName = context.FileName;
+            var artifacts = context.Artifacts;
+
             Argument.IsNotNullOrWhitespace(() => fileName);
             Argument.IsNotNull(() => artifacts);
 
@@ -89,16 +98,20 @@ namespace Orc.SupportPackage
                 builder.AppendLine();
             }
 
-            var result = await _supportPackageService.CreateSupportPackageAsync(fileName, directories, excludeFileNamePatterns, new SupportPackageOptions
+            using (var supportPackageContext = new SupportPackageContext())
             {
-                FileSystemPaths = customData.ToArray(),
-                DescriptionBuilder = builder
-            });
+                supportPackageContext.ZipFileName = fileName;
+                supportPackageContext.AddArtifactDirectories(directories);
+                supportPackageContext.AddExcludeFileNamePatterns(excludeFileNamePatterns);
+                supportPackageContext.AddCustomFileSystemPaths(customData.ToArray());
+                supportPackageContext.DescriptionBuilder = builder;
+                supportPackageContext.EnableEncryption = context.EnableEncryption;
 
-            return result;
+                var result = await _supportPackageService.CreateSupportPackageAsync(supportPackageContext);
+
+                return result;
+            }
         }
-
-
 
         #endregion
     }

@@ -15,7 +15,7 @@ namespace Orc.SupportPackage
         #region Methods
         Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns);
 
-        Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns, SupportPackageOptions extendedOptions);
+        Task<bool> CreateSupportPackageAsync(SupportPackageContext supportPackageContext);
         #endregion
     }
 }

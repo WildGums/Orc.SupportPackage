@@ -66,13 +66,21 @@ namespace Orc.SupportPackage
 
         public virtual async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns)
         {
-            return await CreateSupportPackageAsync(zipFileName, directories, excludeFileNamePatterns, null);
+            using (var packageContext = new SupportPackageContext
+            {
+                ZipFileName = zipFileName,
+            })
+            {
+                packageContext.AddExcludeFileNamePatterns(excludeFileNamePatterns);
+
+                return await CreateSupportPackageAsync(packageContext);
+            }
         }
 
         [Time]
-        public virtual async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns, SupportPackageOptions extendedOptions)
+        public virtual async Task<bool> CreateSupportPackageAsync(SupportPackageContext supportPackageContext)
         {
-            Argument.IsNotNullOrEmpty(() => zipFileName);
+            Argument.IsNotNullOrEmpty(() => supportPackageContext.ZipFileName);
 
             var result = true;
 
@@ -80,67 +88,62 @@ namespace Orc.SupportPackage
             {
                 Log.Info("Creating support package");
 
-                using (var supportPackageContext = new SupportPackageContext())
+                // Note: screenshot first, see remarks in screenshot method
+                var screenshotFileName = supportPackageContext.GetFile("screenshot.jpg");
+                await CaptureWindowAndSaveAsync(screenshotFileName);
+
+                var systemInfoXmlFileName = supportPackageContext.GetFile("systeminfo.xml");
+                var systemInfoTxtFileName = supportPackageContext.GetFile("systeminfo.txt");
+                await GetAndSaveSystemInformationAsync(systemInfoXmlFileName, systemInfoTxtFileName);
+
+                var supportPackageProviderTypes = (from type in TypeCache.GetTypes()
+                                                   where !type.IsAbstractEx() && type.IsClassEx() &&
+                                                         type.ImplementsInterfaceEx<ISupportPackageProvider>()
+                                                   select type).ToList();
+
+                foreach (var supportPackageProviderType in supportPackageProviderTypes)
                 {
-                    supportPackageContext.AddExcludeFileNamePatterns(excludeFileNamePatterns);
-                    supportPackageContext.AddArtifactDirectories(directories);
-
-                    // Note: screenshot first, see remarks in screenshot method
-                    var screenshotFileName = supportPackageContext.GetFile("screenshot.jpg");
-                    await CaptureWindowAndSaveAsync(screenshotFileName);
-
-                    var systemInfoXmlFileName = supportPackageContext.GetFile("systeminfo.xml");
-                    var systemInfoTxtFileName = supportPackageContext.GetFile("systeminfo.txt");
-                    await GetAndSaveSystemInformationAsync(systemInfoXmlFileName, systemInfoTxtFileName);
-
-                    var supportPackageProviderTypes = (from type in TypeCache.GetTypes()
-                                                       where !type.IsAbstractEx() && type.IsClassEx() &&
-                                                             type.ImplementsInterfaceEx<ISupportPackageProvider>()
-                                                       select type).ToList();
-
-                    foreach (var supportPackageProviderType in supportPackageProviderTypes)
+                    try
                     {
-                        try
-                        {
-                            Log.Debug("Gathering support package info from '{0}'", supportPackageProviderType.FullName);
+                        Log.Debug("Gathering support package info from '{0}'", supportPackageProviderType.FullName);
 
-                            var provider = (ISupportPackageProvider)_typeFactory.CreateInstance(supportPackageProviderType);
-                            await provider.ProvideAsync(supportPackageContext);
-                        }
-                        catch (Exception ex)
+                        var provider = (ISupportPackageProvider)_typeFactory.CreateInstance(supportPackageProviderType);
+                        await provider.ProvideAsync(supportPackageContext);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Failed to gather support package info from '{0}'. Info will be excluded from the package", supportPackageProviderType.FullName);
+                    }
+                }
+
+                if (supportPackageContext.EnableEncryption)
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        using (var fileStream = new FileStream(supportPackageContext.ZipFileName, FileMode.OpenOrCreate))
                         {
-                            Log.Warning(ex, "Failed to gather support package info from '{0}'. Info will be excluded from the package", supportPackageProviderType.FullName);
+                            await ZipSupportPackageContentAsync(memoryStream, supportPackageContext);
+
+                            if (supportPackageContext.CustomFileSystemPaths.Any())
+                            {
+                                await ZipCustomAddedContentAsync(memoryStream, supportPackageContext.CustomFileSystemPaths, supportPackageContext.DescriptionBuilder ?? new StringBuilder());
+                            }
+
+                            await _encryptionService.EncryptAsync(memoryStream, fileStream, new EncryptionContext
+                            {
+                                PublicKey = "wtDtCZd4%pA=F=Dp"
+                            });
                         }
                     }
-
-                    if (Globals.EnableEncryption)
+                }
+                else
+                {
+                    using (var fileStream = new FileStream(supportPackageContext.ZipFileName, FileMode.OpenOrCreate))
                     {
-                        using (var memoryStream = new MemoryStream())
+                        await ZipSupportPackageContentAsync(fileStream, supportPackageContext);
+                        if (supportPackageContext.CustomFileSystemPaths.Any())
                         {
-                            using (var fileStream = new FileStream(zipFileName, FileMode.OpenOrCreate))
-                            {
-                                await ZipSupportPackageContentAsync(memoryStream, supportPackageContext);
-                                if (extendedOptions is not null)
-                                {
-                                    await ZipCustomAddedContentAsync(memoryStream, extendedOptions.FileSystemPaths.ToList(), extendedOptions.DescriptionBuilder);
-                                }
-                               
-                                await _encryptionService.EncryptAsync(memoryStream, fileStream, new EncryptionContext
-                                {
-                                    PublicKey = "wtDtCZd4%pA=F=Dp"
-                                });
-                            }
-                        }
-                    }
-                    else
-                    {
-                        using (var fileStream = new FileStream(zipFileName, FileMode.OpenOrCreate))
-                        {
-                            await ZipSupportPackageContentAsync(fileStream, supportPackageContext);
-                            if (extendedOptions is not null)
-                            {
-                                await ZipCustomAddedContentAsync(fileStream, extendedOptions.FileSystemPaths.ToList(), extendedOptions.DescriptionBuilder);
-                            }
+                            await ZipCustomAddedContentAsync(fileStream, supportPackageContext.CustomFileSystemPaths, supportPackageContext.DescriptionBuilder ?? new StringBuilder());
                         }
                     }
                 }
@@ -205,7 +208,7 @@ namespace Orc.SupportPackage
 
         }
 
-        private async Task ZipCustomAddedContentAsync(Stream stream, List<string> customArtifactsDataPath, StringBuilder builder)
+        private async Task ZipCustomAddedContentAsync(Stream stream, IEnumerable<string> customArtifactsDataPath, StringBuilder builder)
         {
             using (var zipArchive = new ZipArchive(stream, ZipArchiveMode.Update, true))
             {
