@@ -137,7 +137,7 @@
                 var publicTextPem = stringBuilder.ToString();
 
                 _fileService.WriteAllText(secretPath, privateTextPem);
-                _fileService.WriteAllText(publicKeyPath, publicKeyPem);
+                _fileService.WriteAllText(publicKeyPath, publicTextPem);
             }
         }
     }
