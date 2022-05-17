@@ -13,6 +13,7 @@
     using Catel.MVVM;
     using Catel.Services;
     using Catel.Threading;
+    using Orc.FileSystem;
     using Orc.SupportPackage.ViewModels;
     using SystemInfo;
 
@@ -28,9 +29,12 @@
         private readonly IAppDataService _appDataService;
         private readonly ITypeFactory _typeFactory;
         private readonly IEncryptionService _encryptionService;
+        private readonly IOpenFileService _openFileService;
+        private readonly IFileService _fileService;
 
         public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService, IMessageService messageService,
-            IUIVisualizerService uiVisualizerService, IAppDataService appDataService, ITypeFactory typeFactory, IEncryptionService encryptionService)
+            IUIVisualizerService uiVisualizerService, IAppDataService appDataService, ITypeFactory typeFactory, IEncryptionService encryptionService,
+            IOpenFileService openFileService, IFileService fileService)
         {
             Argument.IsNotNull(() => screenCaptureService);
             Argument.IsNotNull(() => systemInfoService);
@@ -39,6 +43,8 @@
             Argument.IsNotNull(() => appDataService);
             Argument.IsNotNull(() => typeFactory);
             Argument.IsNotNull(() => encryptionService);
+            Argument.IsNotNull(() => openFileService);
+            Argument.IsNotNull(() => fileService);
 
             _screenCaptureService = screenCaptureService;
             _systemInfoService = systemInfoService;
@@ -47,12 +53,14 @@
             _appDataService = appDataService;
             _typeFactory = typeFactory;
             _encryptionService = encryptionService;
-
+            _openFileService = openFileService;
+            _fileService = fileService;
             Screenshot = new TaskCommand(OnScreenshotExecuteAsync);
             ShowSystemInfo = new TaskCommand(OnShowSystemInfoExecuteAsync);
             SavePackage = new TaskCommand(OnSavePackageExecuteAsync);
             EncryptAndSavePackage = new TaskCommand(OnEncryptAndSavePackageExecuteAsync);
             GenerateKeys = new TaskCommand(OnGenerateKeysExecuteAsync);
+            DecryptPackage = new TaskCommand(OnDecryptPackageExecuteAsync);
 
             Title = "Orc.SupportPackage example";
 
@@ -74,6 +82,12 @@
         private async Task OnEncryptAndSavePackageExecuteAsync()
         {
             var supportPackageViewModel = _typeFactory.CreateInstance<SupportPackageViewModel>();
+            supportPackageViewModel.EncryptionContext = new EncryptionContext
+            {
+                PrivateKeyPath = PrivateKeyPath,
+                PublicKey = await _encryptionService.ReadPublicKeyFromPemFileAsync(PublicKeyPath)
+            };
+               
             await _uiVisualizerService.ShowDialogAsync(supportPackageViewModel);
         }
 
@@ -83,6 +97,39 @@
         {
             _encryptionService.Generate(PrivateKeyPath, PublicKeyPath);
             await _messageService.ShowInformationAsync("Encryption keys generated");
+        }
+
+        public TaskCommand DecryptPackage { get; private set; }
+
+        private async Task OnDecryptPackageExecuteAsync()
+        {
+            var result = await _openFileService.DetermineFileAsync(new DetermineOpenFileContext
+            {
+            });
+
+            if (!result.Result)
+            {
+                return;
+            }
+
+            var directory = Path.GetDirectoryName(result.FileName);
+            var fileName = Path.GetFileNameWithoutExtension(result.FileName);
+
+            var decryptedPackagePath = Path.Combine(directory, $"{fileName}_dec.spkg");
+
+            using (var sourceStream = _fileService.OpenRead(result.FileName))
+            {
+                using (var targetStream = _fileService.Create(decryptedPackagePath))
+                {
+                    await _encryptionService.DecryptAsync(sourceStream, targetStream, new EncryptionContext
+                    {
+                        PrivateKeyPath = PrivateKeyPath,
+                        PublicKey = await _encryptionService.ReadPublicKeyFromPemFileAsync(PublicKeyPath)
+                    });
+                }
+            }
+                
+            await _messageService.ShowInformationAsync($"Decrypted support package saved on path {decryptedPackagePath}");
         }
 
         public TaskCommand Screenshot { get; private set; }

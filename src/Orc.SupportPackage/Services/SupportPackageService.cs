@@ -116,7 +116,7 @@ namespace Orc.SupportPackage
                     }
                 }
 
-                if (supportPackageContext.EnableEncryption)
+                if (supportPackageContext.IsEncrypted)
                 {
                     using (var memoryStream = new MemoryStream())
                     {
@@ -129,10 +129,7 @@ namespace Orc.SupportPackage
                                 await ZipCustomAddedContentAsync(memoryStream, supportPackageContext.CustomFileSystemPaths, supportPackageContext.DescriptionBuilder ?? new StringBuilder());
                             }
 
-                            await _encryptionService.EncryptAsync(memoryStream, fileStream, new EncryptionContext
-                            {
-                                PublicKey = "wtDtCZd4%pA=F=Dp"
-                            });
+                            await _encryptionService.EncryptAsync(memoryStream, fileStream, supportPackageContext.EncryptionContext);
                         }
                     }
                 }

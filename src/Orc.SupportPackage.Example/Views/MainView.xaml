@@ -52,6 +52,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
                     <Label>Public Key</Label>
@@ -78,11 +79,17 @@
                             Grid.Row="2"
                             Command="{Binding SavePackage}"/>
 
-                    <Button Content="Save encrypted package as" 
+                    <Button Content="Save encrypted support package as" 
                             Margin="15" 
                             Grid.ColumnSpan="3"
                             Grid.Row="3"
                             Command="{Binding EncryptAndSavePackage}"/>
+
+                    <Button Content="Decrypt support package" 
+                            Margin="15" 
+                            Grid.ColumnSpan="3"
+                            Grid.Row="4"
+                            Command="{Binding DecryptPackage}"/>
                 </Grid>
             </TabItem>
         </TabControl>

@@ -9,5 +9,6 @@
         Task EncryptAsync(Stream sourceStream, Stream targetStream, EncryptionContext content);
 
         public void Generate(string secretLocation, string publicKeyLocation);
+        Task<string> ReadPublicKeyFromPemFileAsync(string keyPath);
     }
 }

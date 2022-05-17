@@ -44,16 +44,20 @@
 
                     rsa.ImportRSAPublicKey(publicRaw, out _);
 
-                    using (var memoryStream = new MemoryStream())
+                    sourceStream.Seek(0, SeekOrigin.Begin);
+
+                    // To support rsa + sha each read block should be KeySize - SHA overhead size (66 bytes)
+                    var buffer = new byte[rsa.KeySize / 8 - 66];
+                    int bytesRead = 0;
+
+                    while ((bytesRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
                     {
-                        sourceStream.CopyTo(memoryStream);
-
-                        var buffer = memoryStream.ToArray();
-                        var encryptedByres = rsa.Encrypt(buffer, RSAEncryptionPadding.OaepSHA256);
-
-                        targetStream.Write(encryptedByres, 0, encryptedByres.Length);
-                        await targetStream.FlushAsync();
+                        var encryptedBytes = rsa.Encrypt(buffer[0..(bytesRead - 1)], RSAEncryptionPadding.OaepSHA256);
+                        targetStream.Write(encryptedBytes, 0, encryptedBytes.Length);
                     }
+
+                    await targetStream.FlushAsync();
+
                 }
             }
             catch (Exception ex)
@@ -76,38 +80,30 @@
                 using (var rsa = CreateAlghorithm())
                 {
                     // Read secret keeping only the payload of the key 
-                    var pemText = await _fileService.ReadAllTextAsync(context.PrivateKeyPath);
-                    pemText = pemText.Replace(PemTrailingPrivate, "");
-                    pemText = pemText.Replace(PemLeadingPublic, "");
+                    var pemText = await ReadPrivateKeyFromPemFileAsync(context.PrivateKeyPath);
 
                     var secretRaw = Convert.FromBase64String(pemText);
 
                     rsa.ImportRSAPrivateKey(secretRaw, out _);
 
-                    using (var memoryStream = new MemoryStream())
+                    // To support rsa + sha each read block should be KeySize - SHA overhead size (66 bytes)
+                    var buffer = new byte[rsa.KeySize / 8 - 66];
+                    int bytesRead = 0;
+
+                    while ((bytesRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
                     {
-                        sourceStream.CopyTo(memoryStream);
-
-                        var buffer = memoryStream.ToArray();
-                        var decryptedBytes = rsa.Decrypt(buffer, RSAEncryptionPadding.OaepSHA256);
-
+                        var decryptedBytes = rsa.Decrypt(new byte[1], RSAEncryptionPadding.OaepSHA256);
                         targetStream.Write(decryptedBytes, 0, decryptedBytes.Length);
-                        await targetStream.FlushAsync();
                     }
-                }
 
+                    await targetStream.FlushAsync();
+                }
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Failed to decrypt");
                 throw;
             }
-        }
-
-        protected virtual RSA CreateAlghorithm()
-        {
-            var rsa = new RSACryptoServiceProvider(KeySize);
-            return rsa;
         }
 
         public void Generate(string secretPath, string publicKeyPath)
@@ -139,6 +135,34 @@
                 _fileService.WriteAllText(secretPath, privateTextPem);
                 _fileService.WriteAllText(publicKeyPath, publicTextPem);
             }
+        }
+
+        public async Task<string> ReadPublicKeyFromPemFileAsync(string keyPath)
+        {
+            var pemText = await _fileService.ReadAllTextAsync(keyPath);
+            pemText = pemText.Replace(PemTrailingPublic, "");
+            pemText = pemText.Replace(PemLeadingPublic, "");
+
+            pemText = pemText.Trim('\r', '\n');
+
+            return pemText;
+        }
+
+        public async Task<string> ReadPrivateKeyFromPemFileAsync(string keyPath)
+        {
+            var pemText = await _fileService.ReadAllTextAsync(keyPath);
+            pemText = pemText.Replace(PemTrailingPrivate, "");
+            pemText = pemText.Replace(PemLeadingPrivate, "");
+
+            pemText = pemText.Trim('\r', '\n');
+
+            return pemText;
+        }
+
+        protected virtual RSA CreateAlghorithm()
+        {
+            var rsa = new RSACng(KeySize);
+            return rsa;
         }
     }
 }

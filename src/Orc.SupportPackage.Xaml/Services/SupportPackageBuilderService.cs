@@ -105,7 +105,8 @@ namespace Orc.SupportPackage
                 supportPackageContext.AddExcludeFileNamePatterns(excludeFileNamePatterns);
                 supportPackageContext.AddCustomFileSystemPaths(customData.ToArray());
                 supportPackageContext.DescriptionBuilder = builder;
-                supportPackageContext.EnableEncryption = context.EnableEncryption;
+                supportPackageContext.IsEncrypted = context.IsEncrypted;
+                supportPackageContext.EncryptionContext = context.EncryptionContext;
 
                 var result = await _supportPackageService.CreateSupportPackageAsync(supportPackageContext);
 

@@ -11,6 +11,8 @@
 
         public List<SupportPackageFileSystemArtifact> Artifacts { get; set; }
 
-        public bool EnableEncryption { get; set; }
+        public bool IsEncrypted { get; set; }
+
+        public EncryptionContext EncryptionContext { get; set; }
     }
 }

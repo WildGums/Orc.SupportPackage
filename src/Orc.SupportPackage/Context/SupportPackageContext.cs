@@ -39,7 +39,9 @@ namespace Orc.SupportPackage
 
         public string ZipFileName { get; set; }
 
-        public bool EnableEncryption { get; set; }
+        public bool IsEncrypted { get; set; }
+
+        public EncryptionContext EncryptionContext { get; set; }
 
         public StringBuilder DescriptionBuilder { get; set; }
 

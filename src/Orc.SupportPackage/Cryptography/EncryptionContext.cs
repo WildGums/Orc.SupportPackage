@@ -1,6 +1,5 @@
 ﻿namespace Orc.SupportPackage
 {
-    using System;
     using Catel;
 
     public class EncryptionContext
@@ -15,19 +14,12 @@
             Argument.IsNotNull(() => context);
 
             PublicKey = context.PublicKey;
-            SaltValue = context.SaltValue;
-            PasswordIterations = context.PasswordIterations;
-            InitVector = context.InitVector;
-            KeySize = context.KeySize;
+            PrivateKeyPath = context.PrivateKeyPath;
         }
 
-        public EncryptionContext(string publicKey, string saltValue, int? passwordIterations, string initVector, int? keySize)
+        public EncryptionContext(string publicKey)
         {
             PublicKey = publicKey;
-            SaltValue = saltValue;
-            PasswordIterations = passwordIterations;
-            InitVector = initVector;
-            KeySize = keySize;
         }
 
         /// <summary>
@@ -39,15 +31,5 @@
         /// Path to private key on disk
         /// </summary>
         public string PrivateKeyPath { get; set; }
-
-        public string SaltValue { get; set; }
-
-        public int? PasswordIterations { get; set; }
-
-        public string InitVector { get; set; }
-
-        public int? KeySize { get; set; }
-
-        public IProgress<long> Progress { get; set; }
     }
 }
