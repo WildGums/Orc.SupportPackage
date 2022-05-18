@@ -4,7 +4,6 @@
     using System.Drawing.Imaging;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Media.Imaging;
@@ -87,7 +86,7 @@
                 PrivateKeyPath = PrivateKeyPath,
                 PublicKey = await _encryptionService.ReadPublicKeyFromPemFileAsync(PublicKeyPath)
             };
-               
+
             await _uiVisualizerService.ShowDialogAsync(supportPackageViewModel);
         }
 
@@ -119,6 +118,11 @@
 
             using (var sourceStream = _fileService.OpenRead(result.FileName))
             {
+                if (_fileService.Exists(decryptedPackagePath))
+                {
+                    _fileService.Delete(decryptedPackagePath);
+                }
+
                 using (var targetStream = _fileService.Create(decryptedPackagePath))
                 {
                     await _encryptionService.DecryptAsync(sourceStream, targetStream, new EncryptionContext
@@ -128,7 +132,7 @@
                     });
                 }
             }
-                
+
             await _messageService.ShowInformationAsync($"Decrypted support package saved on path {decryptedPackagePath}");
         }
 

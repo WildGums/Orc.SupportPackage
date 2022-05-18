@@ -14,6 +14,8 @@
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private const int KeySize = 2048;
+        private const int RandomizedKeySize = 256; // For data encryption
+        private const int IVSize = 128;
 
         private readonly IFileService _fileService;
 
@@ -38,7 +40,7 @@
             {
                 Argument.IsNotNullOrEmpty(() => content.PublicKey);
 
-                using (var rsa = CreateAlghorithm())
+                using (var rsa = new RSACng(KeySize))
                 {
                     var publicRaw = Convert.FromBase64String(content.PublicKey);
 
@@ -46,18 +48,40 @@
 
                     sourceStream.Seek(0, SeekOrigin.Begin);
 
-                    // To support rsa + sha each read block should be KeySize - SHA overhead size (66 bytes)
-                    var buffer = new byte[rsa.KeySize / 8 - 66];
-                    int bytesRead = 0;
+                    // To successfuly encrypt with rsa + sha the message (randomized key) should be less than KeySize - SHA overhead size (66 bytes)
+                    // var maxRandomizedKeyLength = rsa.KeySize / 8 - 66
 
-                    while ((bytesRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                    using (var symmetric = CreateAlghorithm())
                     {
-                        var encryptedBytes = rsa.Encrypt(buffer[0..(bytesRead - 1)], RSAEncryptionPadding.OaepSHA256);
-                        targetStream.Write(encryptedBytes, 0, encryptedBytes.Length);
+                        // These parameters should be passed as cipher text (encrypted with rsa)
+                        var dataKey = GenerateSymmetricKey(RandomizedKeySize);
+                        var iv = GenerateSymmetricKey(IVSize);
+
+                        symmetric.Key = dataKey;
+                        symmetric.IV = iv;
+
+                        // Create an encryptor to perform the stream transform.
+                        using (var encryptor = symmetric.CreateEncryptor(symmetric.Key, symmetric.IV))
+                        {
+                            var secretBytes = new byte[symmetric.Key.Length + symmetric.IV.Length];
+                            Buffer.BlockCopy(symmetric.IV, 0, secretBytes, 0, symmetric.IV.Length);
+                            Buffer.BlockCopy(symmetric.Key, 0, secretBytes, symmetric.IV.Length, symmetric.Key.Length);
+
+                            var cipherSecret = rsa.Encrypt(secretBytes, RSAEncryptionPadding.OaepSHA256);
+
+                            // Write this block in the beggining of cipher text
+                            await targetStream.WriteAsync(cipherSecret);
+
+                            using (var cryptoStream = new CryptoStream(targetStream, encryptor, CryptoStreamMode.Write, true))
+                            {
+                                await sourceStream.CopyToAsync(cryptoStream);
+                                await cryptoStream.FlushAsync();
+                            }
+                        }
                     }
 
-                    await targetStream.FlushAsync();
 
+                    await targetStream.FlushAsync();
                 }
             }
             catch (Exception ex)
@@ -77,7 +101,7 @@
             {
                 Argument.IsNotNullOrEmpty(() => context.PrivateKeyPath);
 
-                using (var rsa = CreateAlghorithm())
+                using (var rsa = new RSACng(KeySize))
                 {
                     // Read secret keeping only the payload of the key 
                     var pemText = await ReadPrivateKeyFromPemFileAsync(context.PrivateKeyPath);
@@ -86,14 +110,28 @@
 
                     rsa.ImportRSAPrivateKey(secretRaw, out _);
 
-                    // To support rsa + sha each read block should be KeySize - SHA overhead size (66 bytes)
-                    var buffer = new byte[rsa.KeySize / 8 - 66];
-                    int bytesRead = 0;
+                    var ivBytes = IVSize / 8;
 
-                    while ((bytesRead = await sourceStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
+                    // Read and decrypt data encryption parameters
+                    var buffer = new byte[256]; // OaepSHA256
+
+                    await sourceStream.ReadAsync(buffer);
+
+                    var ivAndKey = rsa.Decrypt(buffer, RSAEncryptionPadding.OaepSHA256);
+
+                    using (var symmetric = CreateAlghorithm())
                     {
-                        var decryptedBytes = rsa.Decrypt(new byte[1], RSAEncryptionPadding.OaepSHA256);
-                        targetStream.Write(decryptedBytes, 0, decryptedBytes.Length);
+                        var iv = ivAndKey[0..ivBytes];
+                        var key = ivAndKey[ivBytes..];
+
+                        // Create an encryptor to perform the stream transform.
+                        using (var decryptor = symmetric.CreateDecryptor(key, iv))
+                        {
+                            using (var cryptoStream = new CryptoStream(sourceStream, decryptor, CryptoStreamMode.Read, true))
+                            {
+                                await cryptoStream.CopyToAsync(targetStream);
+                            }
+                        }
                     }
 
                     await targetStream.FlushAsync();
@@ -108,9 +146,19 @@
 
         public void Generate(string secretPath, string publicKeyPath)
         {
-            using (var rsa = CreateAlghorithm())
+            using (var rsa = new RSACng(KeySize))
             {
                 var privateKey = rsa.ExportRSAPrivateKey();
+
+                // Follow DER format specification the result is 270 bytes long (for key size 2048)
+                // It consist of:
+                // 1. collection of the following objects; that takes up 4 bytes
+                // 2. The first object is an integer (which happens to be the public modulus);
+                // the integer itself is 257 bytes (not 256; that's because ASN.1 integers are signed, and so there has to be a leading 00
+                // to make the top bit zero to signify positive), as well as 4 overhead bytes, for a total of 261 bytes
+                // 3. The second object is an integer (which happens to be the public exponent);
+                // if you use 65537 as the exponent, this takes up a total of 5 bytes long (including overhead)
+                // So 4+261+5 gives you a total of 270 bytes
                 var publicKey = rsa.ExportRSAPublicKey();
 
                 var privateKeyPem = Convert.ToBase64String(privateKey);
@@ -159,10 +207,32 @@
             return pemText;
         }
 
-        protected virtual RSA CreateAlghorithm()
+        /// <summary>
+        /// Symmetric algorith used in the hybrid crypto
+        /// </summary>
+        /// <returns></returns>
+        protected virtual SymmetricAlgorithm CreateAlghorithm()
         {
-            var rsa = new RSACng(KeySize);
-            return rsa;
+            var aes = Aes.Create();
+
+            // It is reasonable to set encryption mode to Cipher Block Chaining
+            // (CBC) and Padding PKCS7. Use default options for other symmetric key parameters.
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.PKCS7;
+            aes.BlockSize = 128;
+
+            return aes;
+        }
+
+        protected virtual byte[] GenerateSymmetricKey(int bits)
+        {
+            using (var random = RandomNumberGenerator.Create())
+            {
+                var key = new byte[bits / 8];
+                random.GetNonZeroBytes(key);
+
+                return key;
+            }
         }
     }
 }
