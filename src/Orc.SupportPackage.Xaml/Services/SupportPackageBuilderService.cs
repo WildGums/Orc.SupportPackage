@@ -7,10 +7,7 @@
 
 namespace Orc.SupportPackage
 {
-    using System;
     using System.Collections.Generic;
-    using System.IO;
-    using System.IO.Compression;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -20,8 +17,6 @@ namespace Orc.SupportPackage
 
     public class SupportPackageBuilderService : ISupportPackageBuilderService
     {
-        private const int DirectorySizeLimitInBytes = 25 * 1024 * 1024;
-
         #region Fields
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
@@ -45,6 +40,18 @@ namespace Orc.SupportPackage
         #region Methods
         public virtual async Task<bool> CreateSupportPackageAsync(string fileName, List<SupportPackageFileSystemArtifact> artifacts)
         {
+            return await CreateSupportPackageAsync(new SupportPackageBuilderContext
+            {
+                FileName = fileName,
+                Artifacts = artifacts,
+            });
+        }
+
+        public async Task<bool> CreateSupportPackageAsync(SupportPackageBuilderContext context)
+        {
+            var fileName = context.FileName;
+            var artifacts = context.Artifacts;
+
             Argument.IsNotNullOrWhitespace(() => fileName);
             Argument.IsNotNull(() => artifacts);
 
@@ -61,7 +68,9 @@ namespace Orc.SupportPackage
             }
 
             var excludeFileNamePatterns = artifacts.Where(artifact => !artifact.IncludeInSupportPackage).OfType<SupportPackageFileNamePattern>().SelectMany(artifact => artifact.FileNamePatterns).Distinct().ToArray();
-            var directories = artifacts.Where(artifact => artifact.IncludeInSupportPackage).OfType<SupportPackageDirectory>().Select(artifact => artifact.DirectoryName).Distinct().ToArray();
+            var directories = artifacts.Where(artifact => artifact.IncludeInSupportPackage).OfType<SupportPackageDirectory>().Select(artifact => artifact.DirectoryName)
+                .Distinct()
+                .ToArray();
 
             builder.AppendLine();
             builder.AppendLine("## Exclude file name patterns");
@@ -81,79 +90,28 @@ namespace Orc.SupportPackage
                 builder.AppendLine("- " + directory);
             }
 
-            var result = await _supportPackageService.CreateSupportPackageAsync(fileName, directories, excludeFileNamePatterns);
-
-            var customDataDirectoryName = "CustomData";
-            using (var fileStream = new FileStream(fileName, FileMode.OpenOrCreate))
+            var customData = artifacts.Where(artifact => artifact.IncludeInSupportPackage).OfType<CustomPathsPackageFileSystemArtifact>().SelectMany(x => x.Paths);
+            if (customData.Any())
             {
-                using (var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Update))
-                {
-                    foreach (var artifact in artifacts.OfType<CustomPathsPackageFileSystemArtifact>().Where(artifact => artifact.IncludeInSupportPackage))
-                    {
-                        builder.AppendLine();
-                        builder.AppendLine("## Include custom data");
-                        builder.AppendLine();
-
-                        foreach (var path in artifact.Paths)
-                        {
-                            try
-                            {
-                                var directoryInfo = new DirectoryInfo(path);
-                                if (directoryInfo.Exists)
-                                {
-                                    var directorySize = directoryInfo.GetFiles("*.*", SearchOption.AllDirectories).Sum(info => info.Length);
-                                    if (directorySize > DirectorySizeLimitInBytes)
-                                    {
-                                        Log.Info("Skipped directory '{0}' beacuse its size is greater than '{1}' bytes", path, DirectorySizeLimitInBytes);
-
-                                        builder.AppendLine("- Directory (skipped): " + path);
-                                    }
-                                    else
-                                    {
-                                        zipArchive.CreateEntryFromDirectory(path, Path.Combine(customDataDirectoryName, directoryInfo.Name), CompressionLevel.Optimal);
-                                        builder.AppendLine("- Directory: " + path);
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Warning(ex);
-                            }
-
-                            try
-                            {
-                                if (_fileService.Exists(path))
-                                {
-                                    zipArchive.CreateEntryFromAny(path, customDataDirectoryName, CompressionLevel.Optimal);
-                                    builder.AppendLine("- File: " + path);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Warning(ex);
-                            }
-                        }
-                    }
-
-                    builder.AppendLine();
-                    builder.AppendLine("## File system entries");
-                    builder.AppendLine();
-                    builder.AppendLine("- Total: " + zipArchive.Entries.Count);
-                    builder.AppendLine("- Files: " + zipArchive.Entries.Count(entry => !entry.Name.EndsWith("/")));
-                    builder.AppendLine("- Directories: " + zipArchive.Entries.Count(entry => entry.Name.EndsWith("/")));
-
-                    var builderEntry = zipArchive.CreateEntry("SupportPackageOptions.txt");
-
-                    using (var streamWriter = new StreamWriter(builderEntry.Open()))
-                    {
-                        await streamWriter.WriteAsync(builder.ToString());
-                    }
-
-                    await fileStream.FlushAsync();
-                }
+                builder.AppendLine();
+                builder.AppendLine("## Include custom data");
+                builder.AppendLine();
             }
 
-            return result;
+            using (var supportPackageContext = new SupportPackageContext())
+            {
+                supportPackageContext.ZipFileName = fileName;
+                supportPackageContext.AddArtifactDirectories(directories);
+                supportPackageContext.AddExcludeFileNamePatterns(excludeFileNamePatterns);
+                supportPackageContext.AddCustomFileSystemPaths(customData.ToArray());
+                supportPackageContext.DescriptionBuilder = builder;
+                supportPackageContext.IsEncrypted = context.IsEncrypted;
+                supportPackageContext.EncryptionContext = context.EncryptionContext;
+
+                var result = await _supportPackageService.CreateSupportPackageAsync(supportPackageContext);
+
+                return result;
+            }
         }
 
         #endregion

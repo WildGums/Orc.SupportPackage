@@ -41,7 +41,55 @@
 
             <TabItem Header="Zipping all data">
                 <Grid>
-                    <Button Content="Save support package as" Margin="15  15 15 15" Command="{Binding SavePackage}"/>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Label>Public Key</Label>
+                    <Label Grid.Row="1">Private Key</Label>
+                    <TextBox Grid.Column="1"
+                             Margin="4"
+                             Text="{Binding PublicKeyPath}"/>
+                    <TextBox Grid.Column="1"
+                             Margin="4"
+                             Grid.Row="1"
+                             Text="{Binding PrivateKeyPath}"/>
+
+                    <Button Grid.RowSpan="2"
+                            Grid.Column="2"
+                            Margin="4"
+                            Padding="6"
+                            Command="{Binding GenerateKeys}">
+                        Generate
+                    </Button>
+
+                    <Button Content="Save support package as" 
+                            Margin="15" 
+                            Grid.ColumnSpan="3"
+                            Grid.Row="2"
+                            Command="{Binding SavePackage}"/>
+
+                    <Button Content="Save encrypted support package as" 
+                            Margin="15" 
+                            Grid.ColumnSpan="3"
+                            Grid.Row="3"
+                            Command="{Binding EncryptAndSavePackage}"/>
+
+                    <Button Content="Decrypt support package" 
+                            Margin="15" 
+                            Grid.ColumnSpan="3"
+                            Grid.Row="4"
+                            Command="{Binding DecryptPackage}"/>
                 </Grid>
             </TabItem>
         </TabControl>

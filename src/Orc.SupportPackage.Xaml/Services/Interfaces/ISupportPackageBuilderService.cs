@@ -13,6 +13,8 @@ namespace Orc.SupportPackage
     {
         #region Methods
         Task<bool> CreateSupportPackageAsync(string fileName, List<SupportPackageFileSystemArtifact> artifacts);
+        Task<bool> CreateSupportPackageAsync(SupportPackageBuilderContext context);
+
         #endregion
     }
 }

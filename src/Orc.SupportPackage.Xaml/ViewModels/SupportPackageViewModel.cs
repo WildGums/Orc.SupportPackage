@@ -109,6 +109,8 @@ namespace Orc.SupportPackage.ViewModels
         public bool IncludeCustomPathsInSupportPackage { get; set; }
 
         public List<string> SelectedCustomPaths { get; }
+
+        public EncryptionContext EncryptionContext { get; set; }
         #endregion
 
         #region Commands
@@ -227,7 +229,13 @@ namespace Orc.SupportPackage.ViewModels
                     _isCreatingSupportPackage = false;
                 }))
             {
-                await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, supportPackageFileSystemArtifacts), true);
+                await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(new SupportPackageBuilderContext
+                {
+                    FileName = fileName,
+                    Artifacts = supportPackageFileSystemArtifacts,
+                    IsEncrypted = EncryptionContext is not null,
+                    EncryptionContext = EncryptionContext
+                }), true);
 
                 LastSupportPackageFileName = fileName;
             }

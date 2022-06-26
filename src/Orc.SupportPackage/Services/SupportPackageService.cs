@@ -8,6 +8,7 @@
 namespace Orc.SupportPackage
 {
     using System;
+    using System.Collections.Generic;
     using System.Drawing.Imaging;
     using System.IO;
     using System.IO.Compression;
@@ -30,35 +31,56 @@ namespace Orc.SupportPackage
 
     public class SupportPackageService : ISupportPackageService
     {
+        private const int DirectorySizeLimitInBytes = 25 * 1024 * 1024;
+        private const string CustomDataFolderName = "CustomData";
+
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private readonly IScreenCaptureService _screenCaptureService;
         private readonly ITypeFactory _typeFactory;
         private readonly IDirectoryService _directoryService;
         private readonly IAppDataService _appDataService;
+        private readonly IEncryptionService _encryptionService;
+        private readonly IFileService _fileService;
         private readonly ISystemInfoService _systemInfoService;
 
-        public SupportPackageService(ISystemInfoService systemInfoService,
-            IScreenCaptureService screenCaptureService, ITypeFactory typeFactory,
-            IDirectoryService directoryService, IAppDataService appDataService)
+        public SupportPackageService(ISystemInfoService systemInfoService, IScreenCaptureService screenCaptureService, ITypeFactory typeFactory,
+            IDirectoryService directoryService, IAppDataService appDataService, IEncryptionService encryptionService, IFileService fileService)
         {
             Argument.IsNotNull(() => systemInfoService);
             Argument.IsNotNull(() => screenCaptureService);
             Argument.IsNotNull(() => typeFactory);
             Argument.IsNotNull(() => directoryService);
             Argument.IsNotNull(() => appDataService);
+            Argument.IsNotNull(() => encryptionService);
+            Argument.IsNotNull(() => fileService);
 
             _systemInfoService = systemInfoService;
             _screenCaptureService = screenCaptureService;
             _typeFactory = typeFactory;
             _directoryService = directoryService;
             _appDataService = appDataService;
+            _encryptionService = encryptionService;
+            _fileService = fileService;
+        }
+
+        public virtual async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns)
+        {
+            using (var packageContext = new SupportPackageContext
+            {
+                ZipFileName = zipFileName,
+            })
+            {
+                packageContext.AddExcludeFileNamePatterns(excludeFileNamePatterns);
+
+                return await CreateSupportPackageAsync(packageContext);
+            }
         }
 
         [Time]
-        public virtual async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns)
+        public virtual async Task<bool> CreateSupportPackageAsync(SupportPackageContext supportPackageContext)
         {
-            Argument.IsNotNullOrEmpty(() => zipFileName);
+            Argument.IsNotNullOrEmpty(() => supportPackageContext.ZipFileName);
 
             var result = true;
 
@@ -66,77 +88,59 @@ namespace Orc.SupportPackage
             {
                 Log.Info("Creating support package");
 
-                using (var supportPackageContext = new SupportPackageContext())
+                // Note: screenshot first, see remarks in screenshot method
+                var screenshotFileName = supportPackageContext.GetFile("screenshot.jpg");
+                await CaptureWindowAndSaveAsync(screenshotFileName);
+
+                var systemInfoXmlFileName = supportPackageContext.GetFile("systeminfo.xml");
+                var systemInfoTxtFileName = supportPackageContext.GetFile("systeminfo.txt");
+                await GetAndSaveSystemInformationAsync(systemInfoXmlFileName, systemInfoTxtFileName);
+
+                var supportPackageProviderTypes = (from type in TypeCache.GetTypes()
+                                                   where !type.IsAbstractEx() && type.IsClassEx() &&
+                                                         type.ImplementsInterfaceEx<ISupportPackageProvider>()
+                                                   select type).ToList();
+
+                foreach (var supportPackageProviderType in supportPackageProviderTypes)
                 {
-                    // Note: screenshot first, see remarks in screenshot method
-                    var screenshotFileName = supportPackageContext.GetFile("screenshot.jpg");
-                    await CaptureWindowAndSaveAsync(screenshotFileName);
-
-                    var systemInfoXmlFileName = supportPackageContext.GetFile("systeminfo.xml");
-                    var systemInfoTxtFileName = supportPackageContext.GetFile("systeminfo.txt");
-                    await GetAndSaveSystemInformationAsync(systemInfoXmlFileName, systemInfoTxtFileName);
-
-                    var supportPackageProviderTypes = (from type in TypeCache.GetTypes()
-                                                       where !type.IsAbstractEx() && type.IsClassEx() &&
-                                                             type.ImplementsInterfaceEx<ISupportPackageProvider>()
-                                                       select type).ToList();
-
-                    foreach (var supportPackageProviderType in supportPackageProviderTypes)
+                    try
                     {
-                        try
-                        {
-                            Log.Debug("Gathering support package info from '{0}'", supportPackageProviderType.FullName);
+                        Log.Debug("Gathering support package info from '{0}'", supportPackageProviderType.FullName);
 
-                            var provider = (ISupportPackageProvider)_typeFactory.CreateInstance(supportPackageProviderType);
-                            await provider.ProvideAsync(supportPackageContext);
-                        }
-                        catch (Exception ex)
+                        var provider = (ISupportPackageProvider)_typeFactory.CreateInstance(supportPackageProviderType);
+                        await provider.ProvideAsync(supportPackageContext);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex, "Failed to gather support package info from '{0}'. Info will be excluded from the package", supportPackageProviderType.FullName);
+                    }
+                }
+
+                if (supportPackageContext.IsEncrypted)
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        using (var fileStream = new FileStream(supportPackageContext.ZipFileName, FileMode.OpenOrCreate))
                         {
-                            Log.Warning(ex, "Failed to gather support package info from '{0}'. Info will be excluded from the package", supportPackageProviderType.FullName);
+                            await ZipSupportPackageContentAsync(memoryStream, supportPackageContext);
+
+                            if (supportPackageContext.CustomFileSystemPaths.Any())
+                            {
+                                await ZipCustomAddedContentAsync(memoryStream, supportPackageContext.CustomFileSystemPaths, supportPackageContext.DescriptionBuilder ?? new StringBuilder());
+                            }
+
+                            await _encryptionService.EncryptAsync(memoryStream, fileStream, supportPackageContext.EncryptionContext);
                         }
                     }
-                    using (var fileStream = new FileStream(zipFileName, FileMode.OpenOrCreate))
+                }
+                else
+                {
+                    using (var fileStream = new FileStream(supportPackageContext.ZipFileName, FileMode.OpenOrCreate))
                     {
-                        using (var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Update))
+                        await ZipSupportPackageContentAsync(fileStream, supportPackageContext);
+                        if (supportPackageContext.CustomFileSystemPaths.Any())
                         {
-                            zipArchive.CreateEntryFromDirectory(_appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming), "AppData", CompressionLevel.Optimal);
-                            zipArchive.CreateEntryFromDirectory(supportPackageContext.RootDirectory, string.Empty, CompressionLevel.Optimal);
-
-                            if (directories is not null && directories.Length > 0)
-                            {
-                                foreach (var directory in directories)
-                                {
-                                    if (!_directoryService.Exists(directory))
-                                    {
-                                        Log.Warning($"Directory '{directory}' does not exist, skipping");
-                                        continue;
-                                    }
-
-                                    var directoryPathInArchive = directory.TrimEnd('\\').Split('\\').LastOrDefault();
-                                    if (!string.IsNullOrEmpty(directoryPathInArchive))
-                                    {
-                                        zipArchive.CreateEntryFromDirectory(directory, string.Empty, CompressionLevel.Optimal);
-                                    }
-                                }
-                            }
-
-                            if (excludeFileNamePatterns is not null && excludeFileNamePatterns.Length > 0)
-                            {
-                                Log.Info("Removing excluded files...");
-
-                                var excludeFileNameRegexes = excludeFileNamePatterns.Select(s => new Regex(s.Replace("*", ".*").Replace(".", "\\.") + "$", RegexOptions.IgnoreCase | RegexOptions.Compiled)).ToList();
-
-                                var zipEntries = zipArchive.Entries.ToList();
-                                foreach (var zipEntry in zipEntries)
-                                {
-                                    if (excludeFileNameRegexes.Any(regex => regex.IsMatch(zipEntry.FullName)))
-                                    {
-                                        zipEntry.Delete();
-                                    }
-                                }
-                            }
-
-                            await fileStream.FlushAsync();
+                            await ZipCustomAddedContentAsync(fileStream, supportPackageContext.CustomFileSystemPaths, supportPackageContext.DescriptionBuilder ?? new StringBuilder());
                         }
                     }
                 }
@@ -150,6 +154,118 @@ namespace Orc.SupportPackage
             }
 
             return result;
+        }
+
+        private async Task ZipSupportPackageContentAsync(Stream stream, SupportPackageContext supportPackageContext)
+        {
+            var directories = supportPackageContext.ArtifactsDirectories;
+            var excludeFileNamePatterns = supportPackageContext.ExcludeFileNamePatterns;
+
+            using (var zipArchive = new ZipArchive(stream, ZipArchiveMode.Update, true))
+            {
+                zipArchive.CreateEntryFromDirectory(_appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming), "AppData", CompressionLevel.Optimal);
+                zipArchive.CreateEntryFromDirectory(supportPackageContext.RootDirectory, string.Empty, CompressionLevel.Optimal);
+
+                if (directories is not null && directories.Count > 0)
+                {
+                    foreach (var directory in directories)
+                    {
+                        if (!_directoryService.Exists(directory))
+                        {
+                            Log.Warning($"Directory '{directory}' does not exist, skipping");
+                            continue;
+                        }
+
+                        var directoryPathInArchive = directory.TrimEnd('\\').Split('\\').LastOrDefault();
+                        if (!string.IsNullOrEmpty(directoryPathInArchive))
+                        {
+                            zipArchive.CreateEntryFromDirectory(directory, string.Empty, CompressionLevel.Optimal);
+                        }
+                    }
+                }
+
+                if (excludeFileNamePatterns is not null && excludeFileNamePatterns.Count > 0)
+                {
+                    Log.Info("Removing excluded files...");
+
+                    var excludeFileNameRegexes = excludeFileNamePatterns.Select(s => new Regex(s.Replace("*", ".*").Replace(".", "\\.") + "$", RegexOptions.IgnoreCase | RegexOptions.Compiled)).ToList();
+
+                    var zipEntries = zipArchive.Entries.ToList();
+                    foreach (var zipEntry in zipEntries)
+                    {
+                        if (excludeFileNameRegexes.Any(regex => regex.IsMatch(zipEntry.FullName)))
+                        {
+                            zipEntry.Delete();
+                        }
+                    }
+                }
+
+                await stream.FlushAsync();
+            }
+
+        }
+
+        private async Task ZipCustomAddedContentAsync(Stream stream, IEnumerable<string> customArtifactsDataPath, StringBuilder builder)
+        {
+            using (var zipArchive = new ZipArchive(stream, ZipArchiveMode.Update, true))
+            {
+                foreach (var path in customArtifactsDataPath)
+                {
+                    try
+                    {
+                        var directoryInfo = new DirectoryInfo(path);
+                        if (directoryInfo.Exists)
+                        {
+                            var directorySize = directoryInfo.GetFiles("*.*", SearchOption.AllDirectories).Sum(info => info.Length);
+                            if (directorySize > DirectorySizeLimitInBytes)
+                            {
+                                Log.Info("Skipped directory '{0}' because its size is greater than '{1}' bytes", path, DirectorySizeLimitInBytes);
+
+                                builder.AppendLine("- Directory (skipped): " + path);
+                            }
+                            else
+                            {
+                                zipArchive.CreateEntryFromDirectory(path, Path.Combine(CustomDataFolderName, directoryInfo.Name), CompressionLevel.Optimal);
+                                builder.AppendLine("- Directory: " + path);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex);
+                    }
+
+                    try
+                    {
+                        if (_fileService.Exists(path))
+                        {
+                            zipArchive.CreateEntryFromAny(path, CustomDataFolderName, CompressionLevel.Optimal);
+                            builder.AppendLine("- File: " + path);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Warning(ex);
+                    }
+
+                }
+
+                builder.AppendLine();
+                builder.AppendLine("## File system entries");
+                builder.AppendLine();
+                builder.AppendLine("- Total: " + zipArchive.Entries.Count);
+                builder.AppendLine("- Files: " + zipArchive.Entries.Count(entry => !entry.Name.EndsWith("/")));
+                builder.AppendLine("- Directories: " + zipArchive.Entries.Count(entry => entry.Name.EndsWith("/")));
+
+                var builderEntry = zipArchive.CreateEntry("SupportPackageOptions.txt");
+
+                using (var streamWriter = new StreamWriter(builderEntry.Open()))
+                {
+                    await streamWriter.WriteAsync(builder.ToString());
+                }
+
+                await stream.FlushAsync();
+            }
         }
 
         private async Task CaptureWindowAndSaveAsync(string screenshotFile)
