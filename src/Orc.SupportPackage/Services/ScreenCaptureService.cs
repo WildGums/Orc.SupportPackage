@@ -1,23 +1,16 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ScreenCaptureService.cs" company="WildGums">
-//   Copyright (c) 2008 - 2015 WildGums. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------------------------------------------------
-
-
-namespace Orc.SupportPackage
+﻿namespace Orc.SupportPackage
 {
     using System;
     using System.Drawing;
     using System.Windows;
     using System.Windows.Interop;
-    using Catel;
+    using Win32;
 
     public class ScreenCaptureService : IScreenCaptureService
     {
         public Image CaptureWindowImage(Window window)
         {
-            Argument.IsNotNull(() => window);
+            ArgumentNullException.ThrowIfNull(window);
 
             var windowHandle = new WindowInteropHelper(window).Handle;
 

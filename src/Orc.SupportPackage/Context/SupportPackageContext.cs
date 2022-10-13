@@ -1,11 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="TemporaryFilesHelper.cs" company="WildGums">
-//   Copyright (c) 2008 - 2015 WildGums. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------------------------------------------------
-
-
-namespace Orc.SupportPackage
+﻿namespace Orc.SupportPackage
 {
     using System;
     using System.IO;
@@ -21,9 +14,9 @@ namespace Orc.SupportPackage
 
         public SupportPackageContext()
         {
-            var assembly = AssemblyHelper.GetEntryAssembly();
+            var assembly = AssemblyHelper.GetRequiredEntryAssembly();
 
-            _rootDirectory = Path.Combine(Path.GetTempPath(), assembly.Company(), assembly.Title(),
+            _rootDirectory = Path.Combine(Path.GetTempPath(), assembly.Company() ?? string.Empty, assembly.Title() ?? string.Empty,
                 "support", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
 
             Directory.CreateDirectory(_rootDirectory);
@@ -48,9 +41,12 @@ namespace Orc.SupportPackage
             var fullPath = Path.Combine(_rootDirectory, relativeFilePath);
 
             var directory = Path.GetDirectoryName(fullPath);
-            if (!Directory.Exists(directory))
+            if (directory is not null)
             {
-                Directory.CreateDirectory(directory);
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
             }
 
             return fullPath;

@@ -1,19 +1,9 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SupportPackageViewModel.cs" company="WildGums">
-//   Copyright (c) 2008 - 2015 WildGums. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------------------------------------------------
-
-
-namespace Orc.SupportPackage.ViewModels
+﻿namespace Orc.SupportPackage.ViewModels
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.ComponentModel;
     using System.IO;
     using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
     using System.Windows.Controls;
 
@@ -24,16 +14,14 @@ namespace Orc.SupportPackage.ViewModels
     using Catel.MVVM;
     using Catel.Reflection;
     using Catel.Services;
-    using Catel.Threading;
 
     public class SupportPackageViewModel : ViewModelBase
     {
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
-        #region Fields
         private readonly string _assemblyTitle;
 
-        private readonly IPleaseWaitService _pleaseWaitService;
+        private readonly IBusyIndicatorService _busyIndicatorService;
         private readonly IProcessService _processService;
         private readonly ISelectDirectoryService _selectDirectoryService;
         private readonly IOpenFileService _openFileService;
@@ -43,32 +31,31 @@ namespace Orc.SupportPackage.ViewModels
 
         private bool _isCreatingSupportPackage;
         private bool _isSupportPackageCreated;
-        #endregion
 
-        #region Constructors
-        public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageBuilderService supportPackageService, IPleaseWaitService pleaseWaitService, IProcessService processService, ISelectDirectoryService selectDirectoryService, IOpenFileService openFileService, ILanguageService languageService, IServiceLocator serviceLocator)
+        public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageBuilderService supportPackageService, IBusyIndicatorService busyIndicatorService, 
+            IProcessService processService, ISelectDirectoryService selectDirectoryService, IOpenFileService openFileService, ILanguageService languageService, IServiceLocator serviceLocator)
         {
-            Argument.IsNotNull(() => saveFileService);
-            Argument.IsNotNull(() => supportPackageService);
-            Argument.IsNotNull(() => pleaseWaitService);
-            Argument.IsNotNull(() => processService);
-            Argument.IsNotNull(() => selectDirectoryService);
-            Argument.IsNotNull(() => openFileService);
-            Argument.IsNotNull(() => languageService);
-            Argument.IsNotNull(() => serviceLocator);
+            ArgumentNullException.ThrowIfNull(saveFileService);
+            ArgumentNullException.ThrowIfNull(supportPackageService);
+            ArgumentNullException.ThrowIfNull(busyIndicatorService);
+            ArgumentNullException.ThrowIfNull(processService);
+            ArgumentNullException.ThrowIfNull(selectDirectoryService);
+            ArgumentNullException.ThrowIfNull(openFileService);
+            ArgumentNullException.ThrowIfNull(languageService);
+            ArgumentNullException.ThrowIfNull(serviceLocator);
 
             _saveFileService = saveFileService;
             _supportPackageService = supportPackageService;
-            _pleaseWaitService = pleaseWaitService;
+            _busyIndicatorService = busyIndicatorService;
             _processService = processService;
             _selectDirectoryService = selectDirectoryService;
             _openFileService = openFileService;
             _languageService = languageService;
 
-            var assembly = AssemblyHelper.GetEntryAssembly();
-            _assemblyTitle = assembly.Title();
+            var assembly = AssemblyHelper.GetRequiredEntryAssembly();
+            _assemblyTitle = assembly.Title() ?? string.Empty;
 
-            Title = string.Format(languageService.GetString("SupportPackage_CreateSupportPackage"), _assemblyTitle);
+            Title = string.Format(languageService.GetRequiredString("SupportPackage_CreateSupportPackage"), _assemblyTitle);
 
             CreateSupportPackage = new TaskCommand(OnCreateSupportPackageExecuteAsync, OnCreateSupportPackageCanExecute);
             OpenDirectory = new Command(OnOpenDirectoryExecute, OnOpenDirectoryCanExecute);
@@ -97,10 +84,7 @@ namespace Orc.SupportPackage.ViewModels
             SelectionChangedCommand = new Command<SelectionChangedEventArgs>(OnSelectionChangedExecute);
         }
 
-        #endregion
-
-        #region Properties
-        public string LastSupportPackageFileName { get; private set; }
+        public string? LastSupportPackageFileName { get; private set; }
 
         public List<SupportPackageFileSystemArtifact> SupportPackageFileSystemArtifacts { get; }
 
@@ -109,9 +93,7 @@ namespace Orc.SupportPackage.ViewModels
         public bool IncludeCustomPathsInSupportPackage { get; set; }
 
         public List<string> SelectedCustomPaths { get; }
-        #endregion
 
-        #region Commands
         public TaskCommand AddDirectoryCommand { get; set; }
 
         private async Task OnAddDirectoryExecuteAsync()
@@ -120,7 +102,7 @@ namespace Orc.SupportPackage.ViewModels
             {
             });
 
-            if (!result.Result)
+            if (!result.Result || result.DirectoryName is null)
             {
                 return;
             }
@@ -148,7 +130,7 @@ namespace Orc.SupportPackage.ViewModels
             {
             });
 
-            if (!result.Result)
+            if (!result.Result || result.FileName is null)
             {
                 return;
             }
@@ -171,15 +153,20 @@ namespace Orc.SupportPackage.ViewModels
 
         public Command<SelectionChangedEventArgs> SelectionChangedCommand { get; }
 
-        private void OnSelectionChangedExecute(SelectionChangedEventArgs args)
+        private void OnSelectionChangedExecute(SelectionChangedEventArgs? args)
         {
+            if (args is null)
+            {
+                return;
+            }
+
             SelectedCustomPaths.AddRange(args.AddedItems.OfType<string>());
+
             foreach (var path in args.RemovedItems.OfType<string>())
             {
                 SelectedCustomPaths.Remove(path);
             }
         }
-
 
         /// <summary>
         /// Gets the CreateSupportPackage command.
@@ -212,22 +199,27 @@ namespace Orc.SupportPackage.ViewModels
             }
 
             var fileName = result.FileName;
-            var supportPackageFileSystemArtifacts = SupportPackageFileSystemArtifacts.ToList();
-            supportPackageFileSystemArtifacts.Add(new CustomPathsPackageFileSystemArtifact(_languageService.GetString("SupportPackage_CustomPaths"), CustomPaths.ToList(), IncludeCustomPathsInSupportPackage));
+            if (fileName is null)
+            {
+                return;
+            }
 
-            using (new DisposableToken(null,
+            var supportPackageFileSystemArtifacts = SupportPackageFileSystemArtifacts.ToList();
+            supportPackageFileSystemArtifacts.Add(new CustomPathsPackageFileSystemArtifact(_languageService.GetRequiredString("SupportPackage_CustomPaths"), CustomPaths.ToList(), IncludeCustomPathsInSupportPackage));
+
+            using (new DisposableToken(fileName,
                 x =>
                 {
                     _isCreatingSupportPackage = true;
-                    _pleaseWaitService.Push();
+                    _busyIndicatorService.Push();
                 },
                 x =>
                 {
-                    _pleaseWaitService.Pop();
+                    _busyIndicatorService.Pop();
                     _isCreatingSupportPackage = false;
                 }))
             {
-                await TaskHelper.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, supportPackageFileSystemArtifacts), true);
+                await Task.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, supportPackageFileSystemArtifacts));
 
                 LastSupportPackageFileName = fileName;
             }
@@ -254,14 +246,22 @@ namespace Orc.SupportPackage.ViewModels
         /// </summary>
         private void OnOpenDirectoryExecute()
         {
+            if (string.IsNullOrEmpty(LastSupportPackageFileName))
+            {
+                return;
+            }
+
             var directory = Path.GetDirectoryName(LastSupportPackageFileName);
+            if (directory is null)
+            {
+                return;
+            }
+
             _processService.StartProcess(new ProcessContext
             {
                 FileName = "explorer.exe",
                 Arguments = directory
             });
         }
-
-        #endregion
     }
 }

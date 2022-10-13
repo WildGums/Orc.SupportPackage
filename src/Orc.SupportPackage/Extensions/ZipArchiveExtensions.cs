@@ -3,6 +3,7 @@
     using System.IO;
     using System.Linq;
     using System.IO.Compression;
+    using System;
 
     /// <summary>
     /// Code comes from https://stackoverflow.com/questions/15133626/creating-directories-in-a-ziparchive-c-sharp-net-4-5
@@ -11,6 +12,10 @@
     {
         public static void CreateEntryFromAny(this ZipArchive archive, string sourceName, string entryName, CompressionLevel compressionLevel = CompressionLevel.Optimal)
         {
+            ArgumentNullException.ThrowIfNull(archive);
+            ArgumentNullException.ThrowIfNull(sourceName);
+            ArgumentNullException.ThrowIfNull(entryName);
+
             try
             {
                 if (File.GetAttributes(sourceName).HasFlag(FileAttributes.Directory))
@@ -30,6 +35,10 @@
 
         public static void CreateEntryFromDirectory(this ZipArchive archive, string sourceDirName, string entryName, CompressionLevel compressionLevel)
         {
+            ArgumentNullException.ThrowIfNull(archive);
+            ArgumentNullException.ThrowIfNull(sourceDirName);
+            ArgumentNullException.ThrowIfNull(entryName);
+
             try
             {
                 var files = Directory.EnumerateFileSystemEntries(sourceDirName);

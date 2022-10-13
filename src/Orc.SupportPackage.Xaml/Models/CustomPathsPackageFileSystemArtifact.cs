@@ -1,11 +1,4 @@
-// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CustomPathsPackageFileSystemArtifact.cs" company="WildGums">
-//   Copyright (c) 2008 - 2017 WildGums. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------------------------------------------------
-
-
-namespace Orc.SupportPackage
+﻿namespace Orc.SupportPackage
 {
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
@@ -17,7 +10,6 @@ namespace Orc.SupportPackage
     /// </summary>
     public class CustomPathsPackageFileSystemArtifact : SupportPackageFileSystemArtifact
     {
-        #region Constructors
         public CustomPathsPackageFileSystemArtifact(string title, List<string> paths, bool includeInSupportPackage)
             : base(title, includeInSupportPackage)
         {
@@ -28,10 +20,6 @@ namespace Orc.SupportPackage
             IncludeInSupportPackage = includeInSupportPackage;
         }
 
-        #endregion
-
-        #region Properties
         public ReadOnlyCollection<string> Paths { get; }
-        #endregion
     }
 }

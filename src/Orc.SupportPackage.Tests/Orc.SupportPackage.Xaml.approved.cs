@@ -56,15 +56,15 @@ namespace Orc.SupportPackage.ViewModels
 {
     public class SupportPackageViewModel : Catel.MVVM.ViewModelBase
     {
-        public static readonly Catel.Data.PropertyData IncludeCustomPathsInSupportPackageProperty;
-        public static readonly Catel.Data.PropertyData LastSupportPackageFileNameProperty;
-        public SupportPackageViewModel(Catel.Services.ISaveFileService saveFileService, Orc.SupportPackage.ISupportPackageBuilderService supportPackageService, Catel.Services.IPleaseWaitService pleaseWaitService, Catel.Services.IProcessService processService, Catel.Services.ISelectDirectoryService selectDirectoryService, Catel.Services.IOpenFileService openFileService, Catel.Services.ILanguageService languageService, Catel.IoC.IServiceLocator serviceLocator) { }
+        public static readonly Catel.Data.IPropertyData IncludeCustomPathsInSupportPackageProperty;
+        public static readonly Catel.Data.IPropertyData LastSupportPackageFileNameProperty;
+        public SupportPackageViewModel(Catel.Services.ISaveFileService saveFileService, Orc.SupportPackage.ISupportPackageBuilderService supportPackageService, Catel.Services.IBusyIndicatorService busyIndicatorService, Catel.Services.IProcessService processService, Catel.Services.ISelectDirectoryService selectDirectoryService, Catel.Services.IOpenFileService openFileService, Catel.Services.ILanguageService languageService, Catel.IoC.IServiceLocator serviceLocator) { }
         public Catel.MVVM.TaskCommand AddDirectoryCommand { get; set; }
         public Catel.MVVM.TaskCommand AddFileCommand { get; }
         public Catel.MVVM.TaskCommand CreateSupportPackage { get; }
         public Catel.Collections.FastObservableCollection<string> CustomPaths { get; }
         public bool IncludeCustomPathsInSupportPackage { get; set; }
-        public string LastSupportPackageFileName { get; }
+        public string? LastSupportPackageFileName { get; }
         public Catel.MVVM.Command OpenDirectory { get; }
         public Catel.MVVM.Command RemovePathCommand { get; }
         public System.Collections.Generic.List<string> SelectedCustomPaths { get; }
@@ -77,7 +77,7 @@ namespace Orc.SupportPackage.Views
     public class SupportPackageWindow : Catel.Windows.DataWindow, System.Windows.Markup.IComponentConnector
     {
         public SupportPackageWindow() { }
-        public SupportPackageWindow(Orc.SupportPackage.ViewModels.SupportPackageViewModel viewModel) { }
+        public SupportPackageWindow(Orc.SupportPackage.ViewModels.SupportPackageViewModel? viewModel) { }
         public void InitializeComponent() { }
     }
 }

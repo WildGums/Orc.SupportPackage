@@ -17,7 +17,7 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<ISupportPackageService, SupportPackageService>();
         serviceLocator.RegisterType<IScreenCaptureService, ScreenCaptureService>();
 
-        var languageService = serviceLocator.ResolveType<ILanguageService>();
+        var languageService = serviceLocator.ResolveRequiredType<ILanguageService>();
         languageService.RegisterLanguageSource(new LanguageResourceSource("Orc.SupportPackage", "Orc.SupportPackage.Properties", "Resources"));
     }
 }

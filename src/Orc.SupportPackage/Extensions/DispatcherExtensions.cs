@@ -1,11 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="DispatcherExtensions.cs" company="WildGums">
-//   Copyright (c) 2008 - 2015 WildGums. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------------------------------------------------
-
-
-namespace Orc.SupportPackage
+﻿namespace Orc.SupportPackage
 {
     using System;
     using System.Threading.Tasks;
@@ -28,6 +21,9 @@ namespace Orc.SupportPackage
         /// <returns>The task representing the action.</returns>
         public static Task InvokeAsync(this Dispatcher dispatcher, Action action)
         {
+            ArgumentNullException.ThrowIfNull(dispatcher);
+            ArgumentNullException.ThrowIfNull(action);
+
             var tcs = new TaskCompletionSource<bool>();
 
             var dispatcherOperation = dispatcher.BeginInvoke(new Action(() =>

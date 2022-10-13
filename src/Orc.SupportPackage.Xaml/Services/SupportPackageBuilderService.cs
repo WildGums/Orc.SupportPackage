@@ -1,11 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SupportPackageBuilderService.cs" company="WildGums">
-//   Copyright (c) 2008 - 2018 WildGums. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------------------------------------------------
-
-
-namespace Orc.SupportPackage
+﻿namespace Orc.SupportPackage
 {
     using System;
     using System.Collections.Generic;
@@ -22,31 +15,25 @@ namespace Orc.SupportPackage
     {
         private const int DirectorySizeLimitInBytes = 25 * 1024 * 1024;
 
-        #region Fields
         private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
         private readonly ISupportPackageService _supportPackageService;
 
         private readonly IFileService _fileService;
-        #endregion
 
-        #region Constructors
         public SupportPackageBuilderService(ISupportPackageService supportPackageService, IFileService fileService)
         {
-            Argument.IsNotNull(() => supportPackageService);
-            Argument.IsNotNull(() => fileService);
+            ArgumentNullException.ThrowIfNull(supportPackageService);
+            ArgumentNullException.ThrowIfNull(fileService);
 
             _supportPackageService = supportPackageService;
             _fileService = fileService;
         }
 
-        #endregion
-
-        #region Methods
         public virtual async Task<bool> CreateSupportPackageAsync(string fileName, List<SupportPackageFileSystemArtifact> artifacts)
         {
             Argument.IsNotNullOrWhitespace(() => fileName);
-            Argument.IsNotNull(() => artifacts);
+            ArgumentNullException.ThrowIfNull(artifacts);
 
             var builder = new StringBuilder();
             builder.AppendLine("# Support package options");
@@ -155,7 +142,5 @@ namespace Orc.SupportPackage
 
             return result;
         }
-
-        #endregion
     }
 }

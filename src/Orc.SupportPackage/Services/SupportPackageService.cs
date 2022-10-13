@@ -1,11 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SupportPackageService.cs" company="WildGums">
-//   Copyright (c) 2008 - 2015 WildGums. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------------------------------------------------
-
-
-namespace Orc.SupportPackage
+﻿namespace Orc.SupportPackage
 {
     using System;
     using System.Drawing.Imaging;
@@ -42,11 +35,11 @@ namespace Orc.SupportPackage
             IScreenCaptureService screenCaptureService, ITypeFactory typeFactory,
             IDirectoryService directoryService, IAppDataService appDataService)
         {
-            Argument.IsNotNull(() => systemInfoService);
-            Argument.IsNotNull(() => screenCaptureService);
-            Argument.IsNotNull(() => typeFactory);
-            Argument.IsNotNull(() => directoryService);
-            Argument.IsNotNull(() => appDataService);
+            ArgumentNullException.ThrowIfNull(systemInfoService);
+            ArgumentNullException.ThrowIfNull(screenCaptureService);
+            ArgumentNullException.ThrowIfNull(typeFactory);
+            ArgumentNullException.ThrowIfNull(directoryService);
+            ArgumentNullException.ThrowIfNull(appDataService);
 
             _systemInfoService = systemInfoService;
             _screenCaptureService = screenCaptureService;
@@ -87,7 +80,7 @@ namespace Orc.SupportPackage
                         {
                             Log.Debug("Gathering support package info from '{0}'", supportPackageProviderType.FullName);
 
-                            var provider = (ISupportPackageProvider)_typeFactory.CreateInstance(supportPackageProviderType);
+                            var provider = (ISupportPackageProvider)_typeFactory.CreateRequiredInstance(supportPackageProviderType);
                             await provider.ProvideAsync(supportPackageContext);
                         }
                         catch (Exception ex)
@@ -190,7 +183,7 @@ namespace Orc.SupportPackage
             Argument.IsNotNullOrEmpty(() => xmlFileName);
             Argument.IsNotNullOrEmpty(() => textFileName);
 
-            return TaskHelper.Run(() =>
+            return Task.Run(() =>
             {
                 Log.Debug("Gathering system info for support package");
 
@@ -207,7 +200,7 @@ namespace Orc.SupportPackage
                 var stringBuilder = new StringBuilder();
                 systemInfo.ForEach(x => stringBuilder.AppendLine(x.ToString()));
                 File.WriteAllText(textFileName, stringBuilder.ToString());
-            }, true);
+            });
         }
     }
 }

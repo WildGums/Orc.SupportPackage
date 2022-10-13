@@ -8,10 +8,8 @@
     using System.Windows;
     using System.Windows.Media.Imaging;
     using SystemInfo;
-    using Catel;
     using Catel.MVVM;
     using Catel.Services;
-    using Catel.Threading;
     using Orc.SupportPackage.ViewModels;
 
     public class MainViewModel : ViewModelBase
@@ -27,10 +25,10 @@
         public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService,
             IUIVisualizerService uiVisualizerService, IAppDataService appDataService)
         {
-            Argument.IsNotNull(() => screenCaptureService);
-            Argument.IsNotNull(() => systemInfoService);
-            Argument.IsNotNull(() => uiVisualizerService);
-            Argument.IsNotNull(() => appDataService);
+            ArgumentNullException.ThrowIfNull(screenCaptureService);
+            ArgumentNullException.ThrowIfNull(systemInfoService);
+            ArgumentNullException.ThrowIfNull(uiVisualizerService);
+            ArgumentNullException.ThrowIfNull(appDataService);
 
             _screenCaptureService = screenCaptureService;
             _systemInfoService = systemInfoService;
@@ -44,7 +42,6 @@
             Title = "Orc.SupportPackage example";
         }
 
-        #region Commands
         public TaskCommand SavePackage { get; private set; }
 
         private async Task OnSavePackageExecuteAsync()
@@ -81,16 +78,13 @@
 
         private async Task OnShowSystemInfoExecuteAsync()
         {
-            var sysInfoElements = await TaskHelper.Run(() => _systemInfoService.GetSystemInfo(), true);
+            var sysInfoElements = await Task.Run(() => _systemInfoService.GetSystemInfo());
             var sysInfoLines = sysInfoElements.Select(x => x.ToString());
             SystemInfo = string.Join("\n", sysInfoLines);
         }
-        #endregion
 
-        #region Properties
         public BitmapImage ScreenPic { get; private set; }
 
         public string SystemInfo { get; set; }
-        #endregion
     }
 }
