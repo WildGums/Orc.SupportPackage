@@ -117,7 +117,8 @@
                             {
                                 Log.Info("Removing excluded files...");
 
-                                var excludeFileNameRegexes = excludeFileNamePatterns.Select(s => new Regex(s.Replace("*", ".*").Replace(".", "\\.") + "$", RegexOptions.IgnoreCase | RegexOptions.Compiled)).ToList();
+                                var excludeFileNameRegexes = excludeFileNamePatterns.Select(s => new Regex(s.Replace("*", ".*").Replace(".", "\\.") + "$", 
+                                    RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1))).ToList();
 
                                 var zipEntries = zipArchive.Entries.ToList();
                                 foreach (var zipEntry in zipEntries)
