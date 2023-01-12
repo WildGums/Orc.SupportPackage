@@ -1,11 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PublicApiFacts.cs" company="WildGums">
-//   Copyright (c) 2008 - 2017 WildGums. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------------------------------------------------
-
-
-namespace Orc.SupportPackage.Tests
+﻿namespace Orc.SupportPackage.Tests
 {
     using System.Reflection;
     using System.Runtime.CompilerServices;
