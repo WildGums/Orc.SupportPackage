@@ -1,9 +1,8 @@
-﻿namespace Orc.SupportPackage
-{
-    using System.Collections.Generic;
+﻿namespace Orc.SupportPackage;
 
-    public interface ISupportPackageContentProvider
-    {
-        IEnumerable<SupportPackageFileSystemArtifact> GetSupportPackageFileSystemArtifacts();
-    }
+using System.Collections.Generic;
+
+public interface ISupportPackageContentProvider
+{
+    IEnumerable<SupportPackageFileSystemArtifact> GetSupportPackageFileSystemArtifacts();
 }

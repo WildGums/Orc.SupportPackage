@@ -1,10 +1,9 @@
-﻿namespace Orc.SupportPackage
-{
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+﻿namespace Orc.SupportPackage;
 
-    public interface ISupportPackageBuilderService
-    {
-        Task<bool> CreateSupportPackageAsync(string fileName, List<SupportPackageFileSystemArtifact> artifacts);
-    }
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public interface ISupportPackageBuilderService
+{
+    Task<bool> CreateSupportPackageAsync(string fileName, List<SupportPackageFileSystemArtifact> artifacts);
 }

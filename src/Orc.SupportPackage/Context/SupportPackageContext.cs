@@ -1,72 +1,71 @@
-﻿namespace Orc.SupportPackage
+﻿namespace Orc.SupportPackage;
+
+using System;
+using System.IO;
+using Catel;
+using Catel.Logging;
+using Catel.Reflection;
+
+public class SupportPackageContext : Disposable, ISupportPackageContext
 {
-    using System;
-    using System.IO;
-    using Catel;
-    using Catel.Logging;
-    using Catel.Reflection;
+    private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
-    public class SupportPackageContext : Disposable, ISupportPackageContext
+    private readonly string _rootDirectory;
+
+    public SupportPackageContext()
     {
-        private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+        var assembly = AssemblyHelper.GetRequiredEntryAssembly();
 
-        private readonly string _rootDirectory;
+        _rootDirectory = Path.Combine(Path.GetTempPath(), assembly.Company() ?? string.Empty, assembly.Title() ?? string.Empty,
+            "support", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
 
-        public SupportPackageContext()
+        Directory.CreateDirectory(_rootDirectory);
+    }
+
+    public string RootDirectory { get { return _rootDirectory; } }
+
+    public string GetDirectory(string relativeDirectoryName)
+    {
+        var fullPath = Path.Combine(_rootDirectory, relativeDirectoryName);
+
+        if (!Directory.Exists(fullPath))
         {
-            var assembly = AssemblyHelper.GetRequiredEntryAssembly();
-
-            _rootDirectory = Path.Combine(Path.GetTempPath(), assembly.Company() ?? string.Empty, assembly.Title() ?? string.Empty,
-                "support", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
-
-            Directory.CreateDirectory(_rootDirectory);
+            Directory.CreateDirectory(fullPath);
         }
 
-        public string RootDirectory { get { return _rootDirectory; } }
+        return fullPath;
+    }
 
-        public string GetDirectory(string relativeDirectoryName)
+    public string GetFile(string relativeFilePath)
+    {
+        var fullPath = Path.Combine(_rootDirectory, relativeFilePath);
+
+        var directory = Path.GetDirectoryName(fullPath);
+        if (directory is not null)
         {
-            var fullPath = Path.Combine(_rootDirectory, relativeDirectoryName);
-
-            if (!Directory.Exists(fullPath))
+            if (!Directory.Exists(directory))
             {
-                Directory.CreateDirectory(fullPath);
+                Directory.CreateDirectory(directory);
             }
-
-            return fullPath;
         }
 
-        public string GetFile(string relativeFilePath)
+        return fullPath;
+    }
+
+    protected override void DisposeManaged()
+    {
+        Log.Info("Deleting temporary files from '{0}'", _rootDirectory);
+
+        try
         {
-            var fullPath = Path.Combine(_rootDirectory, relativeFilePath);
-
-            var directory = Path.GetDirectoryName(fullPath);
-            if (directory is not null)
+            if (Directory.Exists(_rootDirectory))
             {
-                if (!Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
+                Directory.Delete(_rootDirectory, true);
             }
-
-            return fullPath;
         }
-
-        protected override void DisposeManaged()
+        catch (Exception ex)
         {
-            Log.Info("Deleting temporary files from '{0}'", _rootDirectory);
-
-            try
-            {
-                if (Directory.Exists(_rootDirectory))
-                {
-                    Directory.Delete(_rootDirectory, true);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Failed to delete temporary files");
-            }
+            Log.Error(ex, "Failed to delete temporary files");
         }
     }
 }

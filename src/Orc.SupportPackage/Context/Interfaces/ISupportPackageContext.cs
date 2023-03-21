@@ -1,10 +1,9 @@
-﻿namespace Orc.SupportPackage
-{
-    public interface ISupportPackageContext
-    {
-        string RootDirectory { get; }
+﻿namespace Orc.SupportPackage;
 
-        string GetDirectory(string relativeDirectoryName);
-        string GetFile(string relativeFilePath);
-    }
+public interface ISupportPackageContext
+{
+    string RootDirectory { get; }
+
+    string GetDirectory(string relativeDirectoryName);
+    string GetFile(string relativeFilePath);
 }

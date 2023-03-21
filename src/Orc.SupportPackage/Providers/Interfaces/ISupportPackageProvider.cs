@@ -1,9 +1,8 @@
-﻿namespace Orc.SupportPackage
-{
-    using System.Threading.Tasks;
+﻿namespace Orc.SupportPackage;
 
-    public interface ISupportPackageProvider
-    {
-        Task ProvideAsync(ISupportPackageContext supportPackageContext);
-    }
+using System.Threading.Tasks;
+
+public interface ISupportPackageProvider
+{
+    Task ProvideAsync(ISupportPackageContext supportPackageContext);
 }

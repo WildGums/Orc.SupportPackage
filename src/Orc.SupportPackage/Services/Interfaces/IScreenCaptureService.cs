@@ -1,10 +1,9 @@
-﻿namespace Orc.SupportPackage
-{
-    using System.Drawing;
-    using System.Windows;
+﻿namespace Orc.SupportPackage;
 
-    public interface IScreenCaptureService
-    {
-        Image CaptureWindowImage(Window window);
-    }
+using System.Drawing;
+using System.Windows;
+
+public interface IScreenCaptureService
+{
+    Image CaptureWindowImage(Window window);
 }
