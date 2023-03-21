@@ -1,16 +1,15 @@
-﻿namespace Orc.SupportPackage.Win32
+﻿namespace Orc.SupportPackage.Win32;
+
+using System.Runtime.InteropServices;
+
+[StructLayout(LayoutKind.Sequential)]
+internal struct RECT
 {
-    using System.Runtime.InteropServices;
+    public int left;
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct RECT
-    {
-        public int left;
+    public int top;
 
-        public int top;
+    public int right;
 
-        public int right;
-
-        public int bottom;
-    }
+    public int bottom;
 }

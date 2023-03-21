@@ -1,24 +1,21 @@
-﻿namespace Orc.SupportPackage.Views
+﻿namespace Orc.SupportPackage.Views;
+
+using Catel.MVVM;
+using Catel.Windows;
+using ViewModels;
+
+public partial class SupportPackageWindow
 {
-    using System.Windows.Controls;
-    using System.Windows.Input;
-    using Catel.MVVM;
-    using Catel.Windows;
-    using ViewModels;
-
-    public partial class SupportPackageWindow
+    public SupportPackageWindow()
+        : this(null)
     {
-        public SupportPackageWindow()
-            : this(null)
-        {
-        }
+    }
 
-        public SupportPackageWindow(SupportPackageViewModel? viewModel)
-            : base(viewModel, DataWindowMode.Custom)
-        {
-            InitializeComponent();
+    public SupportPackageWindow(SupportPackageViewModel? viewModel)
+        : base(viewModel, DataWindowMode.Custom)
+    {
+        InitializeComponent();
             
-            CloseWindowButton.Command = new Command(ExecuteClose, OnCloseCanExecute);
-        }
+        CloseWindowButton.Command = new Command(ExecuteClose, OnCloseCanExecute);
     }
 }

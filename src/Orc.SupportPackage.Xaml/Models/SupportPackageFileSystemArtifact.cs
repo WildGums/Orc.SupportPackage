@@ -1,19 +1,18 @@
-﻿namespace Orc.SupportPackage
+﻿namespace Orc.SupportPackage;
+
+using Catel;
+
+public class SupportPackageFileSystemArtifact
 {
-    using Catel;
-
-    public class SupportPackageFileSystemArtifact
+    protected SupportPackageFileSystemArtifact(string title, bool includeInSupportPackage)
     {
-        protected SupportPackageFileSystemArtifact(string title, bool includeInSupportPackage)
-        {
-            Argument.IsNotNullOrWhitespace(() => title);
+        Argument.IsNotNullOrWhitespace(() => title);
 
-            Title = title;
-            IncludeInSupportPackage = includeInSupportPackage;
-        }
-
-        public string Title { get; set; }
-
-        public bool IncludeInSupportPackage { get; set; }
+        Title = title;
+        IncludeInSupportPackage = includeInSupportPackage;
     }
+
+    public string Title { get; set; }
+
+    public bool IncludeInSupportPackage { get; set; }
 }
