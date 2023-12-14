@@ -1,96 +1,89 @@
-﻿namespace Orc.SupportPackage.Example.ViewModels
+﻿namespace Orc.SupportPackage.Example.ViewModels;
+
+using System;
+using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media.Imaging;
+using SystemInfo;
+using Catel.MVVM;
+using Catel.Services;
+using Orc.SupportPackage.ViewModels;
+
+public class MainViewModel : ViewModelBase
 {
-    using System;
-    using System.Drawing.Imaging;
-    using System.IO;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using System.Windows;
-    using System.Windows.Media.Imaging;
-    using SystemInfo;
-    using Catel;
-    using Catel.MVVM;
-    using Catel.Services;
-    using Catel.Threading;
-    using Orc.SupportPackage.ViewModels;
+    // without this field picture doesn't refresh
+    private static int ScreenshotIndex;
 
-    public class MainViewModel : ViewModelBase
+    private readonly IScreenCaptureService _screenCaptureService;
+    private readonly ISystemInfoService _systemInfoService;
+    private readonly IUIVisualizerService _uiVisualizerService;
+    private readonly IAppDataService _appDataService;
+
+    public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService,
+        IUIVisualizerService uiVisualizerService, IAppDataService appDataService)
     {
-        // without this field picture doesn't refresh
-        private static int ScreenshotIndex;
+        ArgumentNullException.ThrowIfNull(screenCaptureService);
+        ArgumentNullException.ThrowIfNull(systemInfoService);
+        ArgumentNullException.ThrowIfNull(uiVisualizerService);
+        ArgumentNullException.ThrowIfNull(appDataService);
 
-        private readonly IScreenCaptureService _screenCaptureService;
-        private readonly ISystemInfoService _systemInfoService;
-        private readonly IUIVisualizerService _uiVisualizerService;
-        private readonly IAppDataService _appDataService;
+        _screenCaptureService = screenCaptureService;
+        _systemInfoService = systemInfoService;
+        _uiVisualizerService = uiVisualizerService;
+        _appDataService = appDataService;
 
-        public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService,
-            IUIVisualizerService uiVisualizerService, IAppDataService appDataService)
-        {
-            Argument.IsNotNull(() => screenCaptureService);
-            Argument.IsNotNull(() => systemInfoService);
-            Argument.IsNotNull(() => uiVisualizerService);
-            Argument.IsNotNull(() => appDataService);
+        Screenshot = new TaskCommand(OnScreenshotExecuteAsync);
+        ShowSystemInfo = new TaskCommand(OnShowSystemInfoExecuteAsync);
+        SavePackage = new TaskCommand(OnSavePackageExecuteAsync);
 
-            _screenCaptureService = screenCaptureService;
-            _systemInfoService = systemInfoService;
-            _uiVisualizerService = uiVisualizerService;
-            _appDataService = appDataService;
+        Title = "Orc.SupportPackage example";
+    }
 
-            Screenshot = new TaskCommand(OnScreenshotExecuteAsync);
-            ShowSystemInfo = new TaskCommand(OnShowSystemInfoExecuteAsync);
-            SavePackage = new TaskCommand(OnSavePackageExecuteAsync);
+    public TaskCommand SavePackage { get; private set; }
 
-            Title = "Orc.SupportPackage example";
-        }
+    private async Task OnSavePackageExecuteAsync()
+    {
+        await _uiVisualizerService.ShowDialogAsync<SupportPackageViewModel>();
+    }
 
-        #region Commands
-        public TaskCommand SavePackage { get; private set; }
+    public TaskCommand Screenshot { get; private set; }
 
-        private async Task OnSavePackageExecuteAsync()
-        {
-            await _uiVisualizerService.ShowDialogAsync<SupportPackageViewModel>();
-        }
+    private async Task OnScreenshotExecuteAsync()
+    {
+        ScreenPic = null;
 
-        public TaskCommand Screenshot { get; private set; }
-
-        private async Task OnScreenshotExecuteAsync()
-        {
-            ScreenPic = null;
-
-            var mainWindow = Application.Current.MainWindow;
+        var mainWindow = Application.Current.MainWindow;
 
 #pragma warning disable IDISP001
-            var image = _screenCaptureService.CaptureWindowImage(mainWindow);
+        var image = _screenCaptureService.CaptureWindowImage(mainWindow);
 #pragma warning restore IDISP001
 
-            var applicationDataDirectory = _appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming);
-            var filename = Path.Combine(applicationDataDirectory, string.Format("screenshot{0}.jpg", ScreenshotIndex++));
-            image.Save(filename, ImageFormat.Jpeg);
+        var applicationDataDirectory = _appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming);
+        var filename = Path.Combine(applicationDataDirectory, string.Format("screenshot{0}.jpg", ScreenshotIndex++));
+        image.Save(filename, ImageFormat.Jpeg);
 
-            var screenPic = new BitmapImage();
-            screenPic.BeginInit();
-            screenPic.CacheOption = BitmapCacheOption.OnLoad;
-            screenPic.UriSource = new Uri(filename);
-            screenPic.EndInit();
+        var screenPic = new BitmapImage();
+        screenPic.BeginInit();
+        screenPic.CacheOption = BitmapCacheOption.OnLoad;
+        screenPic.UriSource = new Uri(filename);
+        screenPic.EndInit();
 
-            ScreenPic = screenPic;
-        }
-
-        public TaskCommand ShowSystemInfo { get; private set; }
-
-        private async Task OnShowSystemInfoExecuteAsync()
-        {
-            var sysInfoElements = await TaskHelper.Run(() => _systemInfoService.GetSystemInfo(), true);
-            var sysInfoLines = sysInfoElements.Select(x => x.ToString());
-            SystemInfo = string.Join("\n", sysInfoLines);
-        }
-        #endregion
-
-        #region Properties
-        public BitmapImage ScreenPic { get; private set; }
-
-        public string SystemInfo { get; set; }
-        #endregion
+        ScreenPic = screenPic;
     }
+
+    public TaskCommand ShowSystemInfo { get; private set; }
+
+    private async Task OnShowSystemInfoExecuteAsync()
+    {
+        var sysInfoElements = await Task.Run(() => _systemInfoService.GetSystemInfo());
+        var sysInfoLines = sysInfoElements.Select(x => x.ToString());
+        SystemInfo = string.Join("\n", sysInfoLines);
+    }
+
+    public BitmapImage ScreenPic { get; private set; }
+
+    public string SystemInfo { get; set; }
 }

@@ -21,7 +21,7 @@ public static class ModuleInitializer
 
         serviceLocator.RegisterTypeWithTag<ISupportPackageContentProvider, CustomSupportPackageContentProvider>("custom");
 
-        var viewModelLocator = serviceLocator.ResolveType<IViewModelLocator>();
+        var viewModelLocator = serviceLocator.ResolveRequiredType<IViewModelLocator>();
         viewModelLocator.Register(typeof(MainView), typeof(MainViewModel));
     }
 }

@@ -1,32 +1,24 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CustomSupportPackageProvider.cs" company="WildGums">
-//   Copyright (c) 2008 - 2015 WildGums. All rights reserved.
-// </copyright>
-// --------------------------------------------------------------------------------------------------------------------
+﻿namespace Orc.SupportPackage.Example;
 
+using System;
+using System.Threading.Tasks;
+using Catel.IoC;
+using FileSystem;
 
-namespace Orc.SupportPackage.Example
+public class CustomSupportPackageProvider : SupportPackageProviderBase
 {
-    using System.Threading.Tasks;
-    using Catel;
-    using Catel.IoC;
-    using FileSystem;
-
-    public class CustomSupportPackageProvider : SupportPackageProviderBase
+    public override async Task ProvideAsync(ISupportPackageContext supportPackageContext)
     {
-        public override async Task ProvideAsync(ISupportPackageContext supportPackageContext)
-        {
-            Argument.IsNotNull(() => supportPackageContext);
+        ArgumentNullException.ThrowIfNull(supportPackageContext);
 
-            var file = supportPackageContext.GetFile("testfile.txt");
+        var file = supportPackageContext.GetFile("testfile.txt");
 
-            var fileService = this.GetDependencyResolver().Resolve<IFileService>();
+        var fileService = this.GetDependencyResolver().Resolve<IFileService>();
 
-            fileService.WriteAllText(file, "custom suppport package contents");
+        fileService.WriteAllText(file, "custom suppport package contents");
 
-            fileService.WriteAllText(supportPackageContext.GetFile("testfile.exe"), "An exe file as custom package contents");
-            fileService.WriteAllText(supportPackageContext.GetFile("testfile.dll"), "An dll file as custom package contents");
-            fileService.WriteAllText(supportPackageContext.GetFile("testfile.exe.config"), "An config file as custom package contents");
-        }
+        fileService.WriteAllText(supportPackageContext.GetFile("testfile.exe"), "An exe file as custom package contents");
+        fileService.WriteAllText(supportPackageContext.GetFile("testfile.dll"), "An dll file as custom package contents");
+        fileService.WriteAllText(supportPackageContext.GetFile("testfile.exe.config"), "An config file as custom package contents");
     }
 }

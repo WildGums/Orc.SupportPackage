@@ -17,7 +17,7 @@ public static class ModuleInitializer
         serviceLocator.RegisterType<ISupportPackageBuilderService, SupportPackageBuilderService>();
         serviceLocator.RegisterType<ISupportPackageContentProvider, DefaultSupportPackageContentProvider>();
 
-        var languageService = serviceLocator.ResolveType<ILanguageService>();
+        var languageService = serviceLocator.ResolveRequiredType<ILanguageService>();
         languageService.RegisterLanguageSource(new LanguageResourceSource("Orc.SupportPackage.Xaml", "Orc.SupportPackage.Properties", "Resources"));
     }
 }
