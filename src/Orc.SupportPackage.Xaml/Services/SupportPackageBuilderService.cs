@@ -130,7 +130,11 @@ public class SupportPackageBuilderService : ISupportPackageBuilderService
 
         var builderEntry = zipArchive.CreateEntry("SupportPackageOptions.txt");
 
+#if NET10_0_OR_GREATER
+        await using (var streamWriter = new StreamWriter(await builderEntry.OpenAsync()))
+#else
         await using (var streamWriter = new StreamWriter(builderEntry.Open()))
+#endif
         {
             await streamWriter.WriteAsync(builder.ToString());
         }
