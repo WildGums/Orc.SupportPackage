@@ -27,6 +27,10 @@ namespace Orc.SupportPackage
     {
         System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns);
     }
+    public static class OrcSerializationJsonModule
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddOrcSupportPackage(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection) { }
+    }
     public class ScreenCaptureService : Orc.SupportPackage.IScreenCaptureService
     {
         public ScreenCaptureService() { }
@@ -34,7 +38,7 @@ namespace Orc.SupportPackage
     }
     public class SupportPackageContext : Catel.Disposable, Orc.SupportPackage.ISupportPackageContext
     {
-        public SupportPackageContext() { }
+        public SupportPackageContext(Orc.FileSystem.IDirectoryService directoryService, Orc.FileSystem.IFileService fileService, Catel.Reflection.IEntryAssemblyResolver entryAssemblyResolver) { }
         public string RootDirectory { get; }
         protected override void DisposeManaged() { }
         public string GetDirectory(string relativeDirectoryName) { }
@@ -47,7 +51,7 @@ namespace Orc.SupportPackage
     }
     public class SupportPackageService : Orc.SupportPackage.ISupportPackageService
     {
-        public SupportPackageService(Orc.SystemInfo.ISystemInfoService systemInfoService, Orc.SupportPackage.IScreenCaptureService screenCaptureService, Catel.IoC.ITypeFactory typeFactory, Orc.FileSystem.IDirectoryService directoryService, Catel.Services.IAppDataService appDataService) { }
+        public SupportPackageService(Microsoft.Extensions.Logging.ILogger<Orc.SupportPackage.SupportPackageService> logger, Orc.SystemInfo.ISystemInfoService systemInfoService, Orc.SupportPackage.IScreenCaptureService screenCaptureService, Orc.FileSystem.IDirectoryService directoryService, Orc.FileSystem.IFileService fileService, Catel.Reflection.IEntryAssemblyResolver entryAssemblyResolver, Catel.Services.IAppDataService appDataService, System.Collections.Generic.IEnumerable<Orc.SupportPackage.ISupportPackageProvider> supportPackageProviders) { }
         public virtual System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns) { }
     }
     public static class ZipArchiveExtensions

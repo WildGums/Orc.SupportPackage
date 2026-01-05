@@ -5,21 +5,32 @@ using System.IO;
 using Catel;
 using Catel.Logging;
 using Catel.Reflection;
+using Microsoft.Extensions.Logging;
+using Orc.FileSystem;
 
 public class SupportPackageContext : Disposable, ISupportPackageContext
 {
-    private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+    private static readonly ILogger Logger = LogManager.GetLogger(typeof(SupportPackageContext));
+
+    private readonly IDirectoryService _directoryService;
+    private readonly IFileService _fileService;
+    private readonly IEntryAssemblyResolver _entryAssemblyResolver;
 
     private readonly string _rootDirectory;
 
-    public SupportPackageContext()
+    public SupportPackageContext(IDirectoryService directoryService, IFileService fileService,
+        IEntryAssemblyResolver entryAssemblyResolver)
     {
-        var assembly = AssemblyHelper.GetRequiredEntryAssembly();
+        _directoryService = directoryService;
+        _fileService = fileService;
+        _entryAssemblyResolver = entryAssemblyResolver;
+
+        var assembly = _entryAssemblyResolver.Resolve();
 
         _rootDirectory = Path.Combine(Path.GetTempPath(), assembly.Company() ?? string.Empty, assembly.Title() ?? string.Empty,
             "support", DateTime.Now.ToString("yyyyMMdd_HHmmss"));
 
-        Directory.CreateDirectory(_rootDirectory);
+        _directoryService.Create(_rootDirectory);
     }
 
     public string RootDirectory { get { return _rootDirectory; } }
@@ -28,10 +39,7 @@ public class SupportPackageContext : Disposable, ISupportPackageContext
     {
         var fullPath = Path.Combine(_rootDirectory, relativeDirectoryName);
 
-        if (!Directory.Exists(fullPath))
-        {
-            Directory.CreateDirectory(fullPath);
-        }
+        _directoryService.Create(fullPath);
 
         return fullPath;
     }
@@ -43,10 +51,7 @@ public class SupportPackageContext : Disposable, ISupportPackageContext
         var directory = Path.GetDirectoryName(fullPath);
         if (directory is not null)
         {
-            if (!Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
+            _directoryService.Create(directory);
         }
 
         return fullPath;
@@ -54,18 +59,15 @@ public class SupportPackageContext : Disposable, ISupportPackageContext
 
     protected override void DisposeManaged()
     {
-        Log.Info("Deleting temporary files from '{0}'", _rootDirectory);
+        Logger.LogInformation("Deleting temporary files from '{0}'", _rootDirectory);
 
         try
         {
-            if (Directory.Exists(_rootDirectory))
-            {
-                Directory.Delete(_rootDirectory, true);
-            }
+            _directoryService.Delete(_rootDirectory);
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "Failed to delete temporary files");
+            Logger.LogError(ex, "Failed to delete temporary files");
         }
     }
 }

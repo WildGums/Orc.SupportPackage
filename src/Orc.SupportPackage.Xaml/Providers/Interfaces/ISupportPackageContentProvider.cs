@@ -4,5 +4,5 @@ using System.Collections.Generic;
 
 public interface ISupportPackageContentProvider
 {
-    IEnumerable<SupportPackageFileSystemArtifact> GetSupportPackageFileSystemArtifacts();
+    IReadOnlyList<SupportPackageFileSystemArtifact> GetSupportPackageFileSystemArtifacts();
 }
