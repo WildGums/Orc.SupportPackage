@@ -7,7 +7,7 @@
     /// <summary>
     /// Core module which allows the registration of default services in the service collection.
     /// </summary>
-    public static class OrcSerializationJsonModule
+    public static class OrcSupportPackageXamlModule
     {
         public static IServiceCollection AddOrcSupportPackageXaml(this IServiceCollection serviceCollection)
         {
