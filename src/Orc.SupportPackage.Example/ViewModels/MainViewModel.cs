@@ -11,6 +11,7 @@ using SystemInfo;
 using Catel.MVVM;
 using Catel.Services;
 using Orc.SupportPackage.ViewModels;
+using Orc.FileSystem;
 
 public class MainViewModel : ViewModelBase
 {
@@ -21,23 +22,24 @@ public class MainViewModel : ViewModelBase
     private readonly ISystemInfoService _systemInfoService;
     private readonly IUIVisualizerService _uiVisualizerService;
     private readonly IAppDataService _appDataService;
+    private readonly IDirectoryService _directoryService;
+    private readonly IFileService _fileService;
 
     public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService,
-        IUIVisualizerService uiVisualizerService, IAppDataService appDataService)
+        IUIVisualizerService uiVisualizerService, IAppDataService appDataService,
+        IDirectoryService directoryService, IFileService fileService, IServiceProvider serviceProvider)
+        : base(serviceProvider)
     {
-        ArgumentNullException.ThrowIfNull(screenCaptureService);
-        ArgumentNullException.ThrowIfNull(systemInfoService);
-        ArgumentNullException.ThrowIfNull(uiVisualizerService);
-        ArgumentNullException.ThrowIfNull(appDataService);
-
         _screenCaptureService = screenCaptureService;
         _systemInfoService = systemInfoService;
         _uiVisualizerService = uiVisualizerService;
         _appDataService = appDataService;
+        _directoryService = directoryService;
+        _fileService = fileService;
 
-        Screenshot = new TaskCommand(OnScreenshotExecuteAsync);
-        ShowSystemInfo = new TaskCommand(OnShowSystemInfoExecuteAsync);
-        SavePackage = new TaskCommand(OnSavePackageExecuteAsync);
+        Screenshot = new TaskCommand(serviceProvider, OnScreenshotExecuteAsync);
+        ShowSystemInfo = new TaskCommand(serviceProvider, OnShowSystemInfoExecuteAsync);
+        SavePackage = new TaskCommand(serviceProvider, OnSavePackageExecuteAsync);
 
         Title = "Orc.SupportPackage example";
     }
@@ -62,6 +64,9 @@ public class MainViewModel : ViewModelBase
 #pragma warning restore IDISP001
 
         var applicationDataDirectory = _appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming);
+
+        _directoryService.Create(applicationDataDirectory);
+
         var filename = Path.Combine(applicationDataDirectory, string.Format("screenshot{0}.jpg", ScreenshotIndex++));
         image.Save(filename, ImageFormat.Jpeg);
 
