@@ -1,8 +1,9 @@
-﻿namespace Orc.SupportPackage
+﻿namespace Orc
 {
     using Catel.Services;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Orc.SupportPackage;
 
     /// <summary>
     /// Core module which allows the registration of default services in the service collection.
