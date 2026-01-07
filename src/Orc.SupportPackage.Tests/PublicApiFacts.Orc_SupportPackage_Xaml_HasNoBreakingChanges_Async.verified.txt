@@ -10,6 +10,13 @@ public static class ModuleInitializer
 {
     public static void Initialize() { }
 }
+namespace Orc
+{
+    public static class OrcSupportPackageXamlModule
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddOrcSupportPackageXaml(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection) { }
+    }
+}
 namespace Orc.SupportPackage
 {
     public class CustomPathsPackageFileSystemArtifact : Orc.SupportPackage.SupportPackageFileSystemArtifact
@@ -29,10 +36,6 @@ namespace Orc.SupportPackage
     public interface ISupportPackageContentProvider
     {
         System.Collections.Generic.IReadOnlyList<Orc.SupportPackage.SupportPackageFileSystemArtifact> GetSupportPackageFileSystemArtifacts();
-    }
-    public static class OrcSerializationJsonModule
-    {
-        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddOrcSupportPackageXaml(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection) { }
     }
     public class SupportPackageBuilderService : Orc.SupportPackage.ISupportPackageBuilderService
     {
