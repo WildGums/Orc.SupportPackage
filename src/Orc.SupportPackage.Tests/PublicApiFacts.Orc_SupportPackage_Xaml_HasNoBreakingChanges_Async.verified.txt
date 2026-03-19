@@ -84,7 +84,6 @@ namespace Orc.SupportPackage.Views
     public class SupportPackageWindow : Catel.Windows.DataWindow, System.Windows.Markup.IComponentConnector
     {
         public SupportPackageWindow() { }
-        [Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor]
         public SupportPackageWindow(System.IServiceProvider serviceProvider, Catel.Services.IWrapControlService wrapControlService, Catel.Services.ILanguageService languageService) { }
         public SupportPackageWindow(Catel.MVVM.IViewModel? viewModel, System.IServiceProvider serviceProvider, Catel.Services.IWrapControlService wrapControlService, Catel.Services.ILanguageService languageService) { }
         public void InitializeComponent() { }
