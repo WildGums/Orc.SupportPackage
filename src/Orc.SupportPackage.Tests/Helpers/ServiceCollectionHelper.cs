@@ -1,26 +1,25 @@
-﻿namespace Orc.SupportPackage.Tests
+﻿namespace Orc.SupportPackage.Tests;
+
+using Catel;
+using Microsoft.Extensions.DependencyInjection;
+using Orc.FileSystem;
+using Orc.SupportPackage;
+using Orc.SystemInfo;
+
+internal static class ServiceCollectionHelper
 {
-    using Catel;
-    using Microsoft.Extensions.DependencyInjection;
-    using Orc.FileSystem;
-    using Orc.SupportPackage;
-    using Orc.SystemInfo;
-
-    internal static class ServiceCollectionHelper
+    public static IServiceCollection CreateServiceCollection()
     {
-        public static IServiceCollection CreateServiceCollection()
-        {
-            var serviceCollection = new ServiceCollection();
+        var serviceCollection = new ServiceCollection();
 
-            serviceCollection.AddLogging();
-            serviceCollection.AddCatelCore();
-            serviceCollection.AddCatelMvvm();
-            serviceCollection.AddOrcFileSystem();
-            serviceCollection.AddOrcSystemInfo();
-            serviceCollection.AddOrcSupportPackage();
-            serviceCollection.AddOrcSupportPackageXaml();
+        serviceCollection.AddLogging();
+        serviceCollection.AddCatelCore();
+        serviceCollection.AddCatelMvvm();
+        serviceCollection.AddOrcFileSystem();
+        serviceCollection.AddOrcSystemInfo();
+        serviceCollection.AddOrcSupportPackage();
+        serviceCollection.AddOrcSupportPackageXaml();
 
-            return serviceCollection;
-        }
+        return serviceCollection;
     }
 }
