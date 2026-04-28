@@ -13,10 +13,11 @@ using Catel.Logging;
 using Catel.MVVM;
 using Catel.Reflection;
 using Catel.Services;
+using Microsoft.Extensions.Logging;
 
 public class SupportPackageViewModel : ViewModelBase
 {
-    private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+    private static readonly ILogger Logger = LogManager.GetLogger(typeof(SupportPackageViewModel));
 
     private readonly string _assemblyTitle;
 
@@ -31,18 +32,12 @@ public class SupportPackageViewModel : ViewModelBase
     private bool _isCreatingSupportPackage;
     private bool _isSupportPackageCreated;
 
-    public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageBuilderService supportPackageService, IBusyIndicatorService busyIndicatorService, 
-        IProcessService processService, ISelectDirectoryService selectDirectoryService, IOpenFileService openFileService, ILanguageService languageService, IServiceLocator serviceLocator)
+    public SupportPackageViewModel(ISaveFileService saveFileService, ISupportPackageBuilderService supportPackageService, 
+        IBusyIndicatorService busyIndicatorService, IProcessService processService, ISelectDirectoryService selectDirectoryService,
+        IOpenFileService openFileService, ILanguageService languageService, IServiceProvider serviceProvider,
+        IDispatcherService dispatcherService, IEnumerable<ISupportPackageContentProvider> supportPackageContentProviders)
+        : base(serviceProvider)
     {
-        ArgumentNullException.ThrowIfNull(saveFileService);
-        ArgumentNullException.ThrowIfNull(supportPackageService);
-        ArgumentNullException.ThrowIfNull(busyIndicatorService);
-        ArgumentNullException.ThrowIfNull(processService);
-        ArgumentNullException.ThrowIfNull(selectDirectoryService);
-        ArgumentNullException.ThrowIfNull(openFileService);
-        ArgumentNullException.ThrowIfNull(languageService);
-        ArgumentNullException.ThrowIfNull(serviceLocator);
-
         _saveFileService = saveFileService;
         _supportPackageService = supportPackageService;
         _busyIndicatorService = busyIndicatorService;
@@ -56,31 +51,32 @@ public class SupportPackageViewModel : ViewModelBase
 
         Title = string.Format(languageService.GetRequiredString("SupportPackage_CreateSupportPackage"), _assemblyTitle);
 
-        CreateSupportPackage = new TaskCommand(OnCreateSupportPackageExecuteAsync, OnCreateSupportPackageCanExecute);
-        OpenDirectory = new Command(OnOpenDirectoryExecute, OnOpenDirectoryCanExecute);
+        CreateSupportPackage = new TaskCommand(serviceProvider, OnCreateSupportPackageExecuteAsync, OnCreateSupportPackageCanExecute);
+        OpenDirectory = new Command(serviceProvider, OnOpenDirectoryExecute, OnOpenDirectoryCanExecute);
 
-        CustomPaths = new FastObservableCollection<string>();
+        CustomPaths = new FastObservableCollection<string>(dispatcherService);
         SelectedCustomPaths = new List<string>();
 
         SupportPackageFileSystemArtifacts = new List<SupportPackageFileSystemArtifact>();
-        foreach (var supportPackageContentProvider in serviceLocator.ResolveTypes<ISupportPackageContentProvider>())
+
+        foreach (var supportPackageContentProvider in supportPackageContentProviders)
         {
             var type = supportPackageContentProvider.GetType();
 
-            Log.Info("Loaded support package content provider of type: '{0}'", type);
+            Logger.LogDebug("Loaded support package content provider of type: '{0}'", type);
 
             foreach (var supportPackageFileSystemArtifacts in supportPackageContentProvider.GetSupportPackageFileSystemArtifacts())
             {
                 SupportPackageFileSystemArtifacts.Add(supportPackageFileSystemArtifacts);
 
-                Log.Info("Added support package artifacts '{0}' from '{1}'", supportPackageFileSystemArtifacts.Title, type);
+                Logger.LogDebug("Added support package artifacts '{0}' from '{1}'", supportPackageFileSystemArtifacts.Title, type);
             }
         }
 
-        AddDirectoryCommand = new TaskCommand(OnAddDirectoryExecuteAsync);
-        AddFileCommand = new TaskCommand(OnAddFileExecuteAsync);
-        RemovePathCommand = new Command(OnRemovePathExecute);
-        SelectionChangedCommand = new Command<SelectionChangedEventArgs>(OnSelectionChangedExecute);
+        AddDirectoryCommand = new TaskCommand(serviceProvider, OnAddDirectoryExecuteAsync);
+        AddFileCommand = new TaskCommand(serviceProvider, OnAddFileExecuteAsync);
+        RemovePathCommand = new Command(serviceProvider, OnRemovePathExecute);
+        SelectionChangedCommand = new Command<SelectionChangedEventArgs>(serviceProvider, OnSelectionChangedExecute);
     }
 
     public string? LastSupportPackageFileName { get; private set; }

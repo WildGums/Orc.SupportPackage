@@ -1,6 +1,7 @@
 ﻿namespace Orc.SupportPackage;
 
 using System;
+using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
 using System.IO.Compression;
@@ -12,39 +13,37 @@ using System.Windows;
 using System.Xml.Serialization;
 using Catel;
 using Catel.Collections;
-using Catel.IoC;
-using Catel.Logging;
 using Catel.Reflection;
 using Catel.Services;
 using FileSystem;
 using MethodTimer;
+using Microsoft.Extensions.Logging;
 using SystemInfo;
 
 public class SupportPackageService : ISupportPackageService
 {
-    private static readonly ILog Log = LogManager.GetCurrentClassLogger();
-
-    private readonly IScreenCaptureService _screenCaptureService;
-    private readonly ITypeFactory _typeFactory;
-    private readonly IDirectoryService _directoryService;
-    private readonly IAppDataService _appDataService;
+    private readonly ILogger<SupportPackageService> _logger;
     private readonly ISystemInfoService _systemInfoService;
+    private readonly IScreenCaptureService _screenCaptureService;
+    private readonly IDirectoryService _directoryService;
+    private readonly IFileService _fileService;
+    private readonly IEntryAssemblyResolver _entryAssemblyResolver;
+    private readonly IAppDataService _appDataService;
+    private readonly IReadOnlyList<ISupportPackageProvider> _supportPackageProviders;
 
-    public SupportPackageService(ISystemInfoService systemInfoService,
-        IScreenCaptureService screenCaptureService, ITypeFactory typeFactory,
-        IDirectoryService directoryService, IAppDataService appDataService)
+    public SupportPackageService(ILogger<SupportPackageService> logger, ISystemInfoService systemInfoService,
+        IScreenCaptureService screenCaptureService, IDirectoryService directoryService, IFileService fileService,
+        IEntryAssemblyResolver entryAssemblyResolver, IAppDataService appDataService, 
+        IEnumerable<ISupportPackageProvider> supportPackageProviders)
     {
-        ArgumentNullException.ThrowIfNull(systemInfoService);
-        ArgumentNullException.ThrowIfNull(screenCaptureService);
-        ArgumentNullException.ThrowIfNull(typeFactory);
-        ArgumentNullException.ThrowIfNull(directoryService);
-        ArgumentNullException.ThrowIfNull(appDataService);
-
+        _logger = logger;
         _systemInfoService = systemInfoService;
         _screenCaptureService = screenCaptureService;
-        _typeFactory = typeFactory;
         _directoryService = directoryService;
+        _fileService = fileService;
+        _entryAssemblyResolver = entryAssemblyResolver;
         _appDataService = appDataService;
+        _supportPackageProviders = supportPackageProviders.ToArray();
     }
 
     [Time]
@@ -56,35 +55,29 @@ public class SupportPackageService : ISupportPackageService
 
         try
         {
-            Log.Info("Creating support package");
+            _logger.LogInformation("Creating support package");
 
-            using (var supportPackageContext = new SupportPackageContext())
+            using (var supportPackageContext = new SupportPackageContext(_directoryService, _fileService, _entryAssemblyResolver))
             {
                 // Note: screenshot first, see remarks in screenshot method
                 var screenshotFileName = supportPackageContext.GetFile("screenshot.jpg");
                 await CaptureWindowAndSaveAsync(screenshotFileName);
 
-                var systemInfoXmlFileName = supportPackageContext.GetFile("systeminfo.xml");
+                var systemInfoJsonFileName = supportPackageContext.GetFile("systeminfo.json");
                 var systemInfoTxtFileName = supportPackageContext.GetFile("systeminfo.txt");
-                await GetAndSaveSystemInformationAsync(systemInfoXmlFileName, systemInfoTxtFileName);
+                await GetAndSaveSystemInformationAsync(systemInfoJsonFileName, systemInfoTxtFileName);
 
-                var supportPackageProviderTypes = (from type in TypeCache.GetTypes()
-                    where !type.IsAbstractEx() && type.IsClassEx() &&
-                          type.ImplementsInterfaceEx<ISupportPackageProvider>()
-                    select type).ToList();
-
-                foreach (var supportPackageProviderType in supportPackageProviderTypes)
+                foreach (var supportPackageProvider in _supportPackageProviders)
                 {
                     try
                     {
-                        Log.Debug("Gathering support package info from '{0}'", supportPackageProviderType.FullName);
+                        _logger.LogDebug("Gathering support package info from '{0}'", supportPackageProvider.GetType().FullName);
 
-                        var provider = (ISupportPackageProvider)_typeFactory.CreateRequiredInstance(supportPackageProviderType);
-                        await provider.ProvideAsync(supportPackageContext);
+                        await supportPackageProvider.ProvideAsync(supportPackageContext);
                     }
                     catch (Exception ex)
                     {
-                        Log.Warning(ex, "Failed to gather support package info from '{0}'. Info will be excluded from the package", supportPackageProviderType.FullName);
+                        _logger.LogWarning(ex, "Failed to gather support package info from '{0}'. Info will be excluded from the package", supportPackageProvider.GetType().FullName);
                     }
                 }
 
@@ -101,7 +94,7 @@ public class SupportPackageService : ISupportPackageService
                             {
                                 if (!_directoryService.Exists(directory))
                                 {
-                                    Log.Warning($"Directory '{directory}' does not exist, skipping");
+                                    _logger.LogWarning($"Directory '{directory}' does not exist, skipping");
                                     continue;
                                 }
 
@@ -115,7 +108,7 @@ public class SupportPackageService : ISupportPackageService
 
                         if (excludeFileNamePatterns is not null && excludeFileNamePatterns.Length > 0)
                         {
-                            Log.Info("Removing excluded files...");
+                            _logger.LogInformation("Removing excluded files...");
 
                             var excludeFileNameRegexes = excludeFileNamePatterns.Select(s => new Regex(s.Replace("*", ".*").Replace(".", "\\.") + "$", 
                                 RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1))).ToList();
@@ -135,12 +128,12 @@ public class SupportPackageService : ISupportPackageService
                 }
             }
 
-            Log.Info("Support package created");
+            _logger.LogInformation("Support package created");
         }
         catch (Exception ex)
         {
             result = false;
-            Log.Error(ex, "Error while creating support package");
+            _logger.LogError(ex, "Error while creating support package");
         }
 
         return result;
@@ -155,7 +148,7 @@ public class SupportPackageService : ISupportPackageService
         var application = Application.Current;
         if (application is null)
         {
-            Log.Debug("Application.Current is null, cannot create screenshot");
+            _logger.LogDebug("Application.Current is null, cannot create screenshot");
             return;
         }
 
@@ -167,11 +160,11 @@ public class SupportPackageService : ISupportPackageService
             var mainWindow = application.MainWindow;
             if (mainWindow is null)
             {
-                Log.Debug("Application.Current.MainWindow is null, cannot create screenshot");
+                _logger.LogDebug("Application.Current.MainWindow is null, cannot create screenshot");
                 return;
             }
 
-            Log.Debug("Creating screenshot for support package");
+            _logger.LogDebug("Creating screenshot for support package");
 
             var image = _screenCaptureService.CaptureWindowImage(mainWindow);
             image.Save(screenshotFile, ImageFormat.Jpeg);
@@ -186,7 +179,7 @@ public class SupportPackageService : ISupportPackageService
 
         return Task.Run(() =>
         {
-            Log.Debug("Gathering system info for support package");
+            _logger.LogDebug("Gathering system info for support package");
 
             var systemInfo = _systemInfoService.GetSystemInfo();
 

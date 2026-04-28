@@ -10,12 +10,13 @@ using System.Threading.Tasks;
 using Catel;
 using Catel.Logging;
 using FileSystem;
+using Microsoft.Extensions.Logging;
 
 public class SupportPackageBuilderService : ISupportPackageBuilderService
 {
     private const int DirectorySizeLimitInBytes = 25 * 1024 * 1024;
 
-    private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+    private static readonly ILogger Logger = LogManager.GetLogger(typeof(SupportPackageBuilderService));
 
     private readonly ISupportPackageService _supportPackageService;
 
@@ -23,9 +24,6 @@ public class SupportPackageBuilderService : ISupportPackageBuilderService
 
     public SupportPackageBuilderService(ISupportPackageService supportPackageService, IFileService fileService)
     {
-        ArgumentNullException.ThrowIfNull(supportPackageService);
-        ArgumentNullException.ThrowIfNull(fileService);
-
         _supportPackageService = supportPackageService;
         _fileService = fileService;
     }
@@ -90,7 +88,7 @@ public class SupportPackageBuilderService : ISupportPackageBuilderService
                         var directorySize = directoryInfo.GetFiles("*.*", SearchOption.AllDirectories).Sum(info => info.Length);
                         if (directorySize > DirectorySizeLimitInBytes)
                         {
-                            Log.Info("Skipped directory '{0}' because its size is greater than '{1}' bytes", path, DirectorySizeLimitInBytes);
+                            Logger.LogDebug("Skipped directory '{0}' because its size is greater than '{1}' bytes", path, DirectorySizeLimitInBytes);
 
                             builder.AppendLine("- Directory (skipped): " + path);
                         }
@@ -103,7 +101,7 @@ public class SupportPackageBuilderService : ISupportPackageBuilderService
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning(ex);
+                    Logger.LogWarning(ex, "Failed");
                 }
 
                 try
@@ -116,7 +114,7 @@ public class SupportPackageBuilderService : ISupportPackageBuilderService
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning(ex);
+                    Logger.LogWarning(ex, "Failed");
                 }
             }
         }
