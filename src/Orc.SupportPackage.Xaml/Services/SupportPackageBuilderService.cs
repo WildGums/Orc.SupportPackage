@@ -88,7 +88,7 @@ public class SupportPackageBuilderService : ISupportPackageBuilderService
                         var directorySize = directoryInfo.GetFiles("*.*", SearchOption.AllDirectories).Sum(info => info.Length);
                         if (directorySize > DirectorySizeLimitInBytes)
                         {
-                            Logger.LogDebug("Skipped directory '{0}' because its size is greater than '{1}' bytes", path, DirectorySizeLimitInBytes);
+                            Logger.LogDebug("Skipped directory '{Directory}' because its size is greater than '{DirectorySizeLimitInBytes}' bytes", path, DirectorySizeLimitInBytes);
 
                             builder.AppendLine("- Directory (skipped): " + path);
                         }

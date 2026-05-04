@@ -59,7 +59,7 @@ public class SupportPackageContext : Disposable, ISupportPackageContext
 
     protected override void DisposeManaged()
     {
-        Logger.LogInformation("Deleting temporary files from '{0}'", _rootDirectory);
+        Logger.LogInformation("Deleting temporary files from '{RootDirectory}'", _rootDirectory);
 
         try
         {
