@@ -79,13 +79,13 @@ public class SupportPackageService : ISupportPackageService
                 {
                     try
                     {
-                        _logger.LogDebug("Gathering support package info from '{0}'", supportPackageProvider.GetType().FullName);
+                        _logger.LogDebug("Gathering support package info from '{ProviderType}'", supportPackageProvider.GetType().FullName);
 
                         await supportPackageProvider.ProvideAsync(supportPackageContext);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Failed to gather support package info from '{0}'. Info will be excluded from the package", supportPackageProvider.GetType().FullName);
+                        _logger.LogWarning(ex, "Failed to gather support package info from '{ProviderType}'. Info will be excluded from the package", supportPackageProvider.GetType().FullName);
                     }
                 }
 
@@ -134,7 +134,7 @@ public class SupportPackageService : ISupportPackageService
                 {
                     if (!_directoryService.Exists(directory))
                     {
-                        _logger.LogWarning($"Directory '{directory}' does not exist, skipping");
+                        _logger.LogWarning("Directory '{Directory}' does not exist, skipping", directory);
                         continue;
                     }
 

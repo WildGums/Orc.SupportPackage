@@ -63,13 +63,13 @@ public class SupportPackageViewModel : ViewModelBase
         {
             var type = supportPackageContentProvider.GetType();
 
-            Logger.LogDebug("Loaded support package content provider of type: '{0}'", type);
+            Logger.LogDebug("Loaded support package content provider of type: '{ProviderType}'", type);
 
             foreach (var supportPackageFileSystemArtifacts in supportPackageContentProvider.GetSupportPackageFileSystemArtifacts())
             {
                 SupportPackageFileSystemArtifacts.Add(supportPackageFileSystemArtifacts);
 
-                Logger.LogDebug("Added support package artifacts '{0}' from '{1}'", supportPackageFileSystemArtifacts.Title, type);
+                Logger.LogDebug("Added support package artifacts '{Title}' from '{ProviderType}'", supportPackageFileSystemArtifacts.Title, type);
             }
         }
 
