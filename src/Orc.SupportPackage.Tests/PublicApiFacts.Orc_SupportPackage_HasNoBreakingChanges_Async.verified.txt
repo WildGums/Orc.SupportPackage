@@ -1,10 +1,18 @@
 ﻿[assembly: System.Resources.NeutralResourcesLanguage("en-US")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Orc.SupportPackage.Tests")]
-[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v6.0", FrameworkDisplayName="")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName=".NET 10.0")]
 public static class LoadAssembliesOnStartup { }
 public static class ModuleInitializer
 {
+    [System.Runtime.CompilerServices.ModuleInitializer]
     public static void Initialize() { }
+}
+namespace Orc
+{
+    public static class OrcSupportPackageModule
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddOrcSupportPackage(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection) { }
+    }
 }
 namespace Orc.SupportPackage
 {
@@ -33,7 +41,7 @@ namespace Orc.SupportPackage
     }
     public class SupportPackageContext : Catel.Disposable, Orc.SupportPackage.ISupportPackageContext
     {
-        public SupportPackageContext() { }
+        public SupportPackageContext(Orc.FileSystem.IDirectoryService directoryService, Orc.FileSystem.IFileService fileService, Catel.Reflection.IEntryAssemblyResolver entryAssemblyResolver) { }
         public string RootDirectory { get; }
         protected override void DisposeManaged() { }
         public string GetDirectory(string relativeDirectoryName) { }
@@ -46,7 +54,7 @@ namespace Orc.SupportPackage
     }
     public class SupportPackageService : Orc.SupportPackage.ISupportPackageService
     {
-        public SupportPackageService(Orc.SystemInfo.ISystemInfoService systemInfoService, Orc.SupportPackage.IScreenCaptureService screenCaptureService, Catel.IoC.ITypeFactory typeFactory, Orc.FileSystem.IDirectoryService directoryService, Catel.Services.IAppDataService appDataService) { }
+        public SupportPackageService(Microsoft.Extensions.Logging.ILogger<Orc.SupportPackage.SupportPackageService> logger, Orc.SystemInfo.ISystemInfoService systemInfoService, Orc.SupportPackage.IScreenCaptureService screenCaptureService, Orc.FileSystem.IDirectoryService directoryService, Orc.FileSystem.IFileService fileService, Catel.Reflection.IEntryAssemblyResolver entryAssemblyResolver, Catel.Services.IAppDataService appDataService, System.Collections.Generic.IEnumerable<Orc.SupportPackage.ISupportPackageProvider> supportPackageProviders) { }
         public virtual System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns) { }
     }
     public static class ZipArchiveExtensions

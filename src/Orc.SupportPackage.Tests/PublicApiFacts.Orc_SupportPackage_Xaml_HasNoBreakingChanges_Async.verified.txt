@@ -1,6 +1,6 @@
 ﻿[assembly: System.Resources.NeutralResourcesLanguage("en-US")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Orc.SupportPackage.Tests")]
-[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v6.0", FrameworkDisplayName="")]
+[assembly: System.Runtime.Versioning.TargetFramework(".NETCoreApp,Version=v10.0", FrameworkDisplayName=".NET 10.0")]
 [assembly: System.Windows.Markup.XmlnsDefinition("http://schemas.wildgums.com/orc/supportpackage", "Orc.SupportPackage")]
 [assembly: System.Windows.Markup.XmlnsDefinition("http://schemas.wildgums.com/orc/supportpackage", "Orc.SupportPackage.Views")]
 [assembly: System.Windows.Markup.XmlnsPrefix("http://schemas.wildgums.com/orc/supportpackage", "orcsupportpackage")]
@@ -9,6 +9,13 @@ public static class LoadAssembliesOnStartup { }
 public static class ModuleInitializer
 {
     public static void Initialize() { }
+}
+namespace Orc
+{
+    public static class OrcSupportPackageXamlModule
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddOrcSupportPackageXaml(this Microsoft.Extensions.DependencyInjection.IServiceCollection serviceCollection) { }
+    }
 }
 namespace Orc.SupportPackage
 {
@@ -20,7 +27,7 @@ namespace Orc.SupportPackage
     public sealed class DefaultSupportPackageContentProvider : Orc.SupportPackage.ISupportPackageContentProvider
     {
         public DefaultSupportPackageContentProvider(Catel.Services.ILanguageService languageService) { }
-        public System.Collections.Generic.IEnumerable<Orc.SupportPackage.SupportPackageFileSystemArtifact> GetSupportPackageFileSystemArtifacts() { }
+        public System.Collections.Generic.IReadOnlyList<Orc.SupportPackage.SupportPackageFileSystemArtifact> GetSupportPackageFileSystemArtifacts() { }
     }
     public interface ISupportPackageBuilderService
     {
@@ -28,7 +35,7 @@ namespace Orc.SupportPackage
     }
     public interface ISupportPackageContentProvider
     {
-        System.Collections.Generic.IEnumerable<Orc.SupportPackage.SupportPackageFileSystemArtifact> GetSupportPackageFileSystemArtifacts();
+        System.Collections.Generic.IReadOnlyList<Orc.SupportPackage.SupportPackageFileSystemArtifact> GetSupportPackageFileSystemArtifacts();
     }
     public class SupportPackageBuilderService : Orc.SupportPackage.ISupportPackageBuilderService
     {
@@ -56,15 +63,15 @@ namespace Orc.SupportPackage.ViewModels
 {
     public class SupportPackageViewModel : Catel.MVVM.ViewModelBase
     {
-        public static readonly Catel.Data.PropertyData IncludeCustomPathsInSupportPackageProperty;
-        public static readonly Catel.Data.PropertyData LastSupportPackageFileNameProperty;
-        public SupportPackageViewModel(Catel.Services.ISaveFileService saveFileService, Orc.SupportPackage.ISupportPackageBuilderService supportPackageService, Catel.Services.IPleaseWaitService pleaseWaitService, Catel.Services.IProcessService processService, Catel.Services.ISelectDirectoryService selectDirectoryService, Catel.Services.IOpenFileService openFileService, Catel.Services.ILanguageService languageService, Catel.IoC.IServiceLocator serviceLocator) { }
+        public static readonly Catel.Data.IPropertyData IncludeCustomPathsInSupportPackageProperty;
+        public static readonly Catel.Data.IPropertyData LastSupportPackageFileNameProperty;
+        public SupportPackageViewModel(Catel.Services.ISaveFileService saveFileService, Orc.SupportPackage.ISupportPackageBuilderService supportPackageService, Catel.Services.IBusyIndicatorService busyIndicatorService, Catel.Services.IProcessService processService, Catel.Services.ISelectDirectoryService selectDirectoryService, Catel.Services.IOpenFileService openFileService, Catel.Services.ILanguageService languageService, System.IServiceProvider serviceProvider, Catel.Services.IDispatcherService dispatcherService, System.Collections.Generic.IEnumerable<Orc.SupportPackage.ISupportPackageContentProvider> supportPackageContentProviders) { }
         public Catel.MVVM.TaskCommand AddDirectoryCommand { get; set; }
         public Catel.MVVM.TaskCommand AddFileCommand { get; }
         public Catel.MVVM.TaskCommand CreateSupportPackage { get; }
         public Catel.Collections.FastObservableCollection<string> CustomPaths { get; }
         public bool IncludeCustomPathsInSupportPackage { get; set; }
-        public string LastSupportPackageFileName { get; }
+        public string? LastSupportPackageFileName { get; }
         public Catel.MVVM.Command OpenDirectory { get; }
         public Catel.MVVM.Command RemovePathCommand { get; }
         public System.Collections.Generic.List<string> SelectedCustomPaths { get; }
@@ -77,7 +84,8 @@ namespace Orc.SupportPackage.Views
     public class SupportPackageWindow : Catel.Windows.DataWindow, System.Windows.Markup.IComponentConnector
     {
         public SupportPackageWindow() { }
-        public SupportPackageWindow(Orc.SupportPackage.ViewModels.SupportPackageViewModel viewModel) { }
+        public SupportPackageWindow(System.IServiceProvider serviceProvider, Catel.Services.IWrapControlService wrapControlService, Catel.Services.ILanguageService languageService) { }
+        public SupportPackageWindow(Catel.MVVM.IViewModel? viewModel, System.IServiceProvider serviceProvider, Catel.Services.IWrapControlService wrapControlService, Catel.Services.ILanguageService languageService) { }
         public void InitializeComponent() { }
     }
 }

@@ -1,14 +1,14 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Catel.Logging;
 using System;
 using System.Globalization;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Note: do not rename this class or put it inside a namespace.
 /// </summary>
 internal static class MethodTimeLogger
 {
-    #region Methods
     public static void Log(MethodBase methodBase, long milliseconds, string message)
     {
         Log(methodBase.DeclaringType ?? typeof(object), methodBase.Name, milliseconds, message);
@@ -35,7 +35,6 @@ internal static class MethodTimeLogger
         }
 
         var logger = LogManager.GetLogger(type);
-        logger.Debug(finalMessage);
+        logger.LogDebug(finalMessage);
     }
-    #endregion
 }

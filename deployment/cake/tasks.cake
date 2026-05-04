@@ -12,8 +12,9 @@
 #l "notifications.cake"
 #l "generic-tasks.cake"
 #l "apps-uwp-tasks.cake"
-#l "apps-web-tasks.cake"
 #l "apps-wpf-tasks.cake"
+#l "aspire-tasks.cake"
+#l "codesigning-tasks.cake"
 #l "components-tasks.cake"
 #l "dependencies-tasks.cake"
 #l "tools-tasks.cake"
@@ -23,16 +24,19 @@
 #l "tests.cake"
 #l "templates-tasks.cake"
 
-#addin "nuget:?package=Cake.FileHelpers&version=5.0.0"
-#addin "nuget:?package=Cake.Sonar&version=1.1.30"
+#addin "nuget:?package=Cake.FileHelpers&version=7.0.0"
+#addin "nuget:?package=Cake.Sonar&version=5.0.0"
 #addin "nuget:?package=MagicChunks&version=2.0.0.119"
-#addin "nuget:?package=Newtonsoft.Json&version=13.0.1"
-#addin "nuget:?package=System.Net.Http&version=4.3.4"
+#addin "nuget:?package=Newtonsoft.Json&version=13.0.4"
 
-// Note: the SonarQube tool must be installed as a global .NET tool:
+// Note: the SonarQube tool must be installed as a global .NET tool. If you are getting issues like this:
+//
+// The SonarScanner for MSBuild integration failed: [...] was unable to collect the required information about your projects.
+// 
+// It probably means the tool is not correctly installed.
 // `dotnet tool install --global dotnet-sonarscanner --ignore-failed-sources`
 //#tool "nuget:?package=MSBuild.SonarQube.Runner.Tool&version=4.8.0"
-#tool "nuget:?package=dotnet-sonarscanner&version=5.5.3"
+#tool "nuget:?package=dotnet-sonarscanner&version=11.2.1"
 
 //-------------------------------------------------------------
 // BACKWARDS COMPATIBILITY CODE - START
@@ -73,6 +77,7 @@ public class BuildContext : BuildContextBase
     {
         Processors = new List<IProcessor>();
         AllProjects = new List<string>();
+        RegisteredProjects = new List<string>();
         Variables = new Dictionary<string, string>();  
     }
 
@@ -86,12 +91,13 @@ public class BuildContext : BuildContextBase
     public InstallerIntegration Installer { get; set; }
     public NotificationsIntegration Notifications { get; set; }
     public SourceControlIntegration SourceControl { get; set; }
-    public OctopusDeployIntegration OctopusDeploy { get; set; }
 
     // Contexts
     public GeneralContext General { get; set; }
     public TestsContext Tests { get; set; }
 
+    public AspireContext Aspire { get; set; }
+    public CodeSigningContext CodeSigning { get; set; }
     public ComponentsContext Components { get; set; }
     public DependenciesContext Dependencies { get; set; }
     public DockerImagesContext DockerImages { get; set; }
@@ -100,10 +106,10 @@ public class BuildContext : BuildContextBase
     public ToolsContext Tools { get; set; }
     public UwpContext Uwp { get; set; }
     public VsExtensionsContext VsExtensions { get; set; }
-    public WebContext Web { get; set; }
     public WpfContext Wpf { get; set; }
 
     public List<string> AllProjects { get; private set; }
+    public List<string> RegisteredProjects { get; private set; }
 
     protected override void ValidateContext()
     {
@@ -138,6 +144,8 @@ Setup<BuildContext>(setupContext =>
     buildContext.General = InitializeGeneralContext(buildContext, buildContext);
     buildContext.Tests = InitializeTestsContext(buildContext, buildContext);
 
+    buildContext.Aspire = InitializeAspireContext(buildContext, buildContext);
+    buildContext.CodeSigning = InitializeCodeSigningContext(buildContext, buildContext);
     buildContext.Components = InitializeComponentsContext(buildContext, buildContext);
     buildContext.Dependencies = InitializeDependenciesContext(buildContext, buildContext);
     buildContext.DockerImages = InitializeDockerImagesContext(buildContext, buildContext);
@@ -146,14 +154,12 @@ Setup<BuildContext>(setupContext =>
     buildContext.Tools = InitializeToolsContext(buildContext, buildContext);
     buildContext.Uwp = InitializeUwpContext(buildContext, buildContext);
     buildContext.VsExtensions = InitializeVsExtensionsContext(buildContext, buildContext);
-    buildContext.Web = InitializeWebContext(buildContext, buildContext);
     buildContext.Wpf = InitializeWpfContext(buildContext, buildContext);
 
     // Other integrations last
     buildContext.IssueTracker = new IssueTrackerIntegration(buildContext);
     buildContext.Installer = new InstallerIntegration(buildContext);
     buildContext.Notifications = new NotificationsIntegration(buildContext);
-    buildContext.OctopusDeploy = new OctopusDeployIntegration(buildContext);
     buildContext.SourceControl = new SourceControlIntegration(buildContext);
 
     setupContext.LogSeparator("Validating build context");
@@ -165,13 +171,13 @@ Setup<BuildContext>(setupContext =>
     // Note: always put templates and dependencies processor first (it's a dependency after all)
     buildContext.Processors.Add(new TemplatesProcessor(buildContext));
     buildContext.Processors.Add(new DependenciesProcessor(buildContext));
+    buildContext.Processors.Add(new AspireProcessor(buildContext));
     buildContext.Processors.Add(new ComponentsProcessor(buildContext));
     buildContext.Processors.Add(new DockerImagesProcessor(buildContext));
     buildContext.Processors.Add(new GitHubPagesProcessor(buildContext));
     buildContext.Processors.Add(new ToolsProcessor(buildContext));
     buildContext.Processors.Add(new UwpProcessor(buildContext));
     buildContext.Processors.Add(new VsExtensionsProcessor(buildContext));
-    buildContext.Processors.Add(new WebProcessor(buildContext));
     buildContext.Processors.Add(new WpfProcessor(buildContext));
     // !!! Note: we add test projects *after* preparing all the other processors, see Prepare task !!!
 
@@ -232,34 +238,82 @@ Task("Initialize")
 Task("Prepare")
     .Does<BuildContext>(async buildContext =>
 {
+    // Add all projects to registered projects
+    buildContext.RegisteredProjects.AddRange(buildContext.Aspire.Items);
+    buildContext.RegisteredProjects.AddRange(buildContext.Components.Items);
+    buildContext.RegisteredProjects.AddRange(buildContext.Dependencies.Items);
+    buildContext.RegisteredProjects.AddRange(buildContext.DockerImages.Items);
+    buildContext.RegisteredProjects.AddRange(buildContext.GitHubPages.Items);
+    buildContext.RegisteredProjects.AddRange(buildContext.Tests.Items);
+    buildContext.RegisteredProjects.AddRange(buildContext.Tools.Items);
+    buildContext.RegisteredProjects.AddRange(buildContext.Uwp.Items);
+    buildContext.RegisteredProjects.AddRange(buildContext.VsExtensions.Items);
+    buildContext.RegisteredProjects.AddRange(buildContext.Wpf.Items);
+
     await buildContext.BuildServer.BeforePrepareAsync();
 
     foreach (var processor in buildContext.Processors)
     {
+        if (processor is DependenciesProcessor)
+        {
+            // Process later
+            continue;
+        }
+
         await processor.PrepareAsync();
     }
 
-    // Now add all projects, but dependencies first & tests last
-    buildContext.AllProjects.AddRange(buildContext.Dependencies.Items);
+    // Now add all projects, but dependencies first & tests last, which will be added at the end
+    buildContext.AllProjects.AddRange(buildContext.Aspire.Items);
     buildContext.AllProjects.AddRange(buildContext.Components.Items);
     buildContext.AllProjects.AddRange(buildContext.DockerImages.Items);
     buildContext.AllProjects.AddRange(buildContext.GitHubPages.Items);
     buildContext.AllProjects.AddRange(buildContext.Tools.Items);
     buildContext.AllProjects.AddRange(buildContext.Uwp.Items);
     buildContext.AllProjects.AddRange(buildContext.VsExtensions.Items);
-    buildContext.AllProjects.AddRange(buildContext.Web.Items);
     buildContext.AllProjects.AddRange(buildContext.Wpf.Items);
+
+    buildContext.CakeContext.LogSeparator("Final check which test projects should be included (1/2)");
 
     // Once we know all the projects that will be built, we calculate which
     // test projects need to be built as well
 
     var testProcessor = new TestProcessor(buildContext);
-
     await testProcessor.PrepareAsync();
-
     buildContext.Processors.Add(testProcessor);
 
+    buildContext.CakeContext.Information(string.Empty);
+    buildContext.CakeContext.Information($"Found '{buildContext.Tests.Items.Count}' test projects");
+    
+    foreach (var test in buildContext.Tests.Items)
+    {
+        buildContext.CakeContext.Information($"  - {test}");
+    }
+
     buildContext.AllProjects.AddRange(buildContext.Tests.Items);
+
+    buildContext.CakeContext.LogSeparator("Final check which dependencies should be included (2/2)");
+
+    // Now we really really determined all projects to build, we can check the dependencies
+    var dependenciesProcessor = (DependenciesProcessor)buildContext.Processors.First(x => x is DependenciesProcessor);
+    await dependenciesProcessor.PrepareAsync();
+
+    buildContext.CakeContext.Information(string.Empty);
+    buildContext.CakeContext.Information($"Found '{buildContext.Dependencies.Items.Count}' dependencies");
+    
+    foreach (var dependency in buildContext.Dependencies.Items)
+    {
+        buildContext.CakeContext.Information($"  - {dependency}");
+    }
+
+    // Add to the front, these are dependencies after all
+    buildContext.AllProjects.InsertRange(0, buildContext.Dependencies.Items);
+
+    // Now we have the full collection, distinct
+    var allProjects = buildContext.AllProjects.ToArray();
+
+    buildContext.AllProjects.Clear();
+    buildContext.AllProjects.AddRange(allProjects.Distinct());
 
     buildContext.CakeContext.LogSeparator("Final projects to process");
 
@@ -326,9 +380,9 @@ Task("Build")
             Verbose = false,
             Silent = true,
 
-            // Support waiting for the quality gate
             ArgumentCustomization = args => args
                 .Append("/d:sonar.qualitygate.wait=true")
+                .Append("/d:sonar.scanner.scanAll=false")
         };
 
         if (!string.IsNullOrWhiteSpace(buildContext.General.SonarQube.Organization))
@@ -341,9 +395,9 @@ Task("Build")
             sonarSettings.Login = buildContext.General.SonarQube.Username;
         }
 
-        if (!string.IsNullOrWhiteSpace(buildContext.General.SonarQube.Password))
+        if (!string.IsNullOrWhiteSpace(buildContext.General.SonarQube.Token))
         {
-            sonarSettings.Password = buildContext.General.SonarQube.Password;
+            sonarSettings.Token = buildContext.General.SonarQube.Token;
         }
 
         // see https://cakebuild.net/api/Cake.Sonar/SonarBeginSettings/ for more information on
@@ -394,7 +448,7 @@ Task("Build")
             {
                 await buildContext.SourceControl.MarkBuildAsPendingAsync("SonarQube");
 
-                var sonarEndSettings = new SonarEndSettings
+                var sonarSettings = new SonarEndSettings
                 {
                     // Use core clr version of SonarQube
                     UseCoreClr = true
@@ -402,17 +456,17 @@ Task("Build")
 
                 if (!string.IsNullOrWhiteSpace(buildContext.General.SonarQube.Username))
                 {
-                    sonarEndSettings.Login = buildContext.General.SonarQube.Username;
+                    sonarSettings.Login = buildContext.General.SonarQube.Username;
                 }
 
-                if (!string.IsNullOrWhiteSpace(buildContext.General.SonarQube.Password))
+                if (!string.IsNullOrWhiteSpace(buildContext.General.SonarQube.Token))
                 {
-                    sonarEndSettings.Password = buildContext.General.SonarQube.Password;
+                    sonarSettings.Token = buildContext.General.SonarQube.Token;
                 }
 
                 Information("Ending SonarQube");
 
-                SonarEnd(sonarEndSettings);
+                SonarEnd(sonarSettings);
 
                 await buildContext.SourceControl.MarkBuildAsSucceededAsync("SonarQube");
             }
@@ -469,11 +523,83 @@ Task("Test")
 
     await buildContext.SourceControl.MarkBuildAsPendingAsync("Test");
     
-    foreach (var testProject in buildContext.Tests.Items)
+    if (buildContext.Tests.Items.Count > 0)
     {
-        buildContext.CakeContext.LogSeparator("Running tests for '{0}'", testProject);
+        // If docker is involved, login to all registries for the unit / integration tests
+        var dockerRegistries = new HashSet<string>();
+        var dockerProcessor = (DockerImagesProcessor)buildContext.Processors.Single(x => x is DockerImagesProcessor);
 
-        RunUnitTests(buildContext, testProject);
+        try
+        {
+            foreach (var dockerImage in buildContext.DockerImages.Items)
+            {       
+                var dockerRegistryUrl = dockerProcessor.GetDockerRegistryUrl(dockerImage);
+                if (dockerRegistries.Contains(dockerRegistryUrl))
+                {
+                    continue;
+                }
+
+                // Note: we are logging in each time because the registry might be different per container
+                Information($"Logging in to docker @ '{dockerRegistryUrl}'");
+
+                dockerRegistries.Add(dockerRegistryUrl);
+
+                var dockerRegistryUserName = dockerProcessor.GetDockerRegistryUserName(dockerImage);
+                var dockerRegistryPassword = dockerProcessor.GetDockerRegistryPassword(dockerImage);
+
+                var dockerLoginSettings = new DockerRegistryLoginSettings
+                {
+                    Username = dockerRegistryUserName,
+                    Password = dockerRegistryPassword
+                };
+
+                DockerLogin(dockerLoginSettings, dockerRegistryUrl);
+            }
+
+            // Always run all unit test projects before throwing
+            var failed = false;
+
+            foreach (var testProject in buildContext.Tests.Items)
+            {
+                buildContext.CakeContext.LogSeparator("Running tests for '{0}'", testProject);
+
+                try
+                {
+                    RunUnitTests(buildContext, testProject);
+                }
+                catch (Exception ex)
+                {
+                    failed = true;
+
+                    Warning($"Running tests for '{testProject}' caused an exception: {ex.Message}");
+                }
+            }
+
+            if (failed)
+            {
+                throw new Exception("At least 1 test project failed execution");
+            }
+        }
+        finally
+        {
+            foreach (var dockerRegistry in dockerRegistries)
+            {
+                try
+                {
+                    Information($"Logging out of docker @ '{dockerRegistry}'");
+
+                    var dockerLogoutSettings = new DockerRegistryLogoutSettings
+                    {
+                    };
+
+                    DockerLogout(dockerLogoutSettings, dockerRegistry);
+                }
+                catch (Exception ex)
+                {
+                    Warning($"Failed to logout from docker: {ex.Message}");
+                }
+            }
+        }
     }
 
     await buildContext.SourceControl.MarkBuildAsSucceededAsync("Test");
@@ -667,7 +793,6 @@ Task("TestNotifications")
     await buildContext.Notifications.NotifyAsync("MyProject", "This is a generic test");
     await buildContext.Notifications.NotifyAsync("MyProject", "This is a component test", TargetType.Component);
     await buildContext.Notifications.NotifyAsync("MyProject", "This is a docker image test", TargetType.DockerImage);
-    await buildContext.Notifications.NotifyAsync("MyProject", "This is a web app test", TargetType.WebApp);
     await buildContext.Notifications.NotifyAsync("MyProject", "This is a wpf app test", TargetType.WpfApp);
     await buildContext.Notifications.NotifyErrorAsync("MyProject", "This is an error");
 });

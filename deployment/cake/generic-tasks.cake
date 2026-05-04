@@ -3,7 +3,6 @@
 //#addin "nuget:?package=Cake.DependencyCheck&version=1.2.0"
 
 //#tool "nuget:?package=DependencyCheck.Runner.Tool&version=3.2.1&include=./**/dependency-check.sh&include=./**/dependency-check.bat"
-//#tool "nuget:?package=JetBrains.ReSharper.CommandLineTools&version=2018.1.3"
 
 //-------------------------------------------------------------
 
@@ -128,30 +127,34 @@ Task("RestorePackages")
 
     //var csharpProjects = GetFiles("./**/*.csproj");
     // var cProjects = GetFiles("./**/*.vcxproj");
-    var solutions = GetFiles("./**/*.sln");
+    var solutions = new List<FilePath>();
+    solutions.AddRange(GetFiles("./**/*.sln"));
+    solutions.AddRange(GetFiles("./**/*.slnx"));
+    
     var csharpProjects = new List<FilePath>();
 
     foreach (var project in buildContext.AllProjects)
     {
-        // if (ShouldProcessProject(buildContext, project))
-        // {
-            var projectFileName = GetProjectFileName(buildContext, project);
-            if (projectFileName.EndsWith(".csproj"))
-            {
-                Information("Adding '{0}' as C# specific project to restore", project);
+        // Once a project is in AllProjects, it should always be restored
+        
+        var projectFileName = GetProjectFileName(buildContext, project);
+        if (projectFileName.EndsWith(".csproj"))
+        {
+            Information("Adding '{0}' as C# specific project to restore", project);
 
-                csharpProjects.Add(projectFileName);
+            csharpProjects.Add(projectFileName);
 
-                // Inject source link *before* package restore
-                InjectSourceLinkInProjectFile(buildContext, projectFileName);
-            }
-        //}
+            // Inject source link *before* package restore
+            InjectSourceLinkInProjectFile(buildContext, project, projectFileName);
+        }
     }
 
     var allFiles = new List<FilePath>();
     //allFiles.AddRange(solutions);
     allFiles.AddRange(csharpProjects);
     // //allFiles.AddRange(cProjects);
+
+	Information($"Found '{allFiles.Count}' projects to restore");
 
     foreach (var file in allFiles)
     {
@@ -192,17 +195,26 @@ Task("Clean")
         return;
     }
 
-    var platforms = new Dictionary<string, PlatformTarget>();
-    platforms["AnyCPU"] = PlatformTarget.MSIL;
-    platforms["x86"] = PlatformTarget.x86;
-    platforms["x64"] = PlatformTarget.x64;
-    platforms["arm"] = PlatformTarget.ARM;
+    // Note: this is all coming from the solution file, but the cake build solution parser
+    // unfortunately does not support the 'platform' attribute, so we have to assume all for now
+    //var solutionParser = buildContext.CakeContext.ParseSolution(buildContext.General.Solution.FileName);
 
-    foreach (var platform in platforms)
+    var platformTargets = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+    // These are well-known platform targets
+    platformTargets["AnyCPU"] = "Any CPU";
+    platformTargets["x86"] = "x86";
+    platformTargets["x86"] = "x64";
+    //platformTargets["Win32"] = "Win32";
+    //platformTargets["ARM"] = "ARM";
+    platformTargets["ARM32"] = "ARM32";
+    platformTargets["ARM64"] = "ARM64";
+
+    foreach (var platformTarget in platformTargets)
     {
         try
         {
-            Information("Cleaning output for platform '{0}'", platform.Value);
+            Information("Cleaning output for platform '{0}'", platformTarget.Value);
 
             var msBuildSettings = new MSBuildSettings
             {
@@ -210,10 +222,12 @@ Task("Clean")
                 ToolVersion = MSBuildToolVersion.Default,
                 Configuration = buildContext.General.Solution.ConfigurationName,
                 MSBuildPlatform = MSBuildPlatform.x86, // Always require x86, see platform for actual target platform
-                PlatformTarget = platform.Value
+                //PlatformTarget = platform.Value // use string variant
             };
 
-            ConfigureMsBuild(buildContext, msBuildSettings, platform.Key, "clean");
+            msBuildSettings = msBuildSettings.SetPlatformTarget(platformTarget.Value);
+
+            ConfigureMsBuild(buildContext, msBuildSettings, platformTarget.Value, "clean");
 
             msBuildSettings.Targets.Add("Clean");
 
@@ -221,7 +235,7 @@ Task("Clean")
         }
         catch (System.Exception ex)
         {
-            Warning("Failed to clean output for platform '{0}': {1}", platform.Value, ex.Message);
+            Warning("Failed to clean output for platform '{0}': {1}", platformTarget.Key, ex.Message);
         }
     }
 
@@ -276,10 +290,10 @@ Task("CodeSign")
         return;
     }
 
-    var certificateSubjectName = buildContext.General.CodeSign.CertificateSubjectName;
-    if (string.IsNullOrWhiteSpace(certificateSubjectName))
+    if (!buildContext.General.CodeSign.IsAvailable &&
+        !buildContext.General.AzureCodeSign.IsAvailable)
     {
-        Information("Skipping code signing because the certificate subject name was not specified");
+        Information("Skipping code signing since no option is available");
         return;
     }
 
@@ -292,53 +306,6 @@ Task("CodeSign")
 
     foreach (var projectToCodeSign in projectsToCodeSign)
     {
-        var codeSignWildCard = buildContext.General.CodeSign.WildCard;
-        if (string.IsNullOrWhiteSpace(codeSignWildCard))
-        {
-            // Empty, we need to override with project name for valid default value
-            codeSignWildCard = projectToCodeSign;
-        }
-
-        var outputDirectory = string.Format("{0}/{1}", buildContext.General.OutputRootDirectory, projectToCodeSign);
-
-        var projectFilesToSign = new List<FilePath>();
-
-        var exeSignFilesSearchPattern = string.Format("{0}/**/*{1}*.exe", outputDirectory, codeSignWildCard);
-        Information(exeSignFilesSearchPattern);
-        projectFilesToSign.AddRange(GetFiles(exeSignFilesSearchPattern));
-
-        var dllSignFilesSearchPattern = string.Format("{0}/**/*{1}*.dll", outputDirectory, codeSignWildCard);
-        Information(dllSignFilesSearchPattern);
-        projectFilesToSign.AddRange(GetFiles(dllSignFilesSearchPattern));
-
-        Information("Found '{0}' files to code sign for '{1}'", projectFilesToSign.Count, projectToCodeSign);
-
-        filesToSign.AddRange(projectFilesToSign);
+        SignProjectFiles(buildContext, projectToCodeSign);
     }
-
-    var signToolCommand = string.Format("sign /a /t {0} /n {1}", buildContext.General.CodeSign.TimeStampUri, certificateSubjectName);
-
-    SignFiles(buildContext, signToolCommand, filesToSign);
-
-    // var signToolSignSettings = new SignToolSignSettings 
-    // {
-    //     AppendSignature = false,
-    //     TimeStampUri = new Uri(buildContext.General.CodeSign.TimeStampUri),
-    //     CertSubjectName = certificateSubjectName
-    // };
-
-    // Sign(filesToSign, signToolSignSettings);
-
-    // Note parallel doesn't seem to be faster in an example repository:
-    // 1 thread:   1m 30s
-    // 4 threads:  1m 30s
-    // 10 threads: 1m 30s
-    // Parallel.ForEach(filesToSign, new ParallelOptions 
-    //     { 
-    //         MaxDegreeOfParallelism = 10 
-    //     },
-    //     fileToSign => 
-    //     { 
-    //         Sign(fileToSign, signToolSignSettings);
-    //     });
 });
