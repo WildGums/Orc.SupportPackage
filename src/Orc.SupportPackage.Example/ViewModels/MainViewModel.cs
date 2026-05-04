@@ -106,7 +106,12 @@ public class MainViewModel : ViewModelBase
         var directory = Path.GetDirectoryName(result.FileName);
         var fileName = Path.GetFileNameWithoutExtension(result.FileName);
 
-        var decryptedPackagePath = Path.Combine(directory ?? string.Empty, $"{fileName}_dec.spkg");
+        if (directory is null)
+        {
+            return;
+        }
+
+        var decryptedPackagePath = Path.Combine(directory, $"{fileName}_dec.spkg");
 
         using (var sourceStream = _fileService.OpenRead(result.FileName))
         {
