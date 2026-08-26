@@ -91,6 +91,10 @@
           <target state="needs-review-translation">Remove</target>
           <note from="MultilingualUpdate" priority="2">When the XLIFF file support was added via MAT, existing resources were found and auto-imported.  This source and target string contained the same value so the resource was marked as 'Needs review' to ensure the translation could be easily reviewed.</note>
         </trans-unit>
+        <trans-unit id="SupportPackage_Close" translate="yes" xml:space="preserve">
+          <source>Close</source>
+          <target state="needs-translation">Close</target>
+        </trans-unit>
       </group>
     </body>
   </file>

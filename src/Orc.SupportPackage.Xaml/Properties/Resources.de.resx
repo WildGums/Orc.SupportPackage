@@ -63,4 +63,7 @@
   <data name="SupportPackage_RemovePath" xml:space="preserve">
     <value>Remove</value>
   </data>
+  <data name="SupportPackage_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
 </root>
