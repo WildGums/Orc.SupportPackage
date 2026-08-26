@@ -74,6 +74,10 @@
           <source>Remove</source>
           <target state="translated">Verwijderen</target>
         </trans-unit>
+        <trans-unit id="SupportPackage_Close" translate="yes" xml:space="preserve">
+          <source>Close</source>
+          <target state="translated">Sluiten</target>
+        </trans-unit>
       </group>
     </body>
   </file>
