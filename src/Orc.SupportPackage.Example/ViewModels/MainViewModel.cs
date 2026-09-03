@@ -1,4 +1,4 @@
-﻿namespace Orc.SupportPackage.Example.ViewModels;
+namespace Orc.SupportPackage.Example.ViewModels;
 
 using System;
 using System.Drawing.Imaging;
@@ -24,10 +24,16 @@ public class MainViewModel : ViewModelBase
     private readonly IAppDataService _appDataService;
     private readonly IDirectoryService _directoryService;
     private readonly IFileService _fileService;
+    private readonly IEncryptionService _encryptionService;
+    private readonly ITypeFactory _typeFactory;
+    private readonly IOpenFileService _openFileService;
+    private readonly IMessageService _messageService;
 
     public MainViewModel(IScreenCaptureService screenCaptureService, ISystemInfoService systemInfoService,
         IUIVisualizerService uiVisualizerService, IAppDataService appDataService,
-        IDirectoryService directoryService, IFileService fileService, IServiceProvider serviceProvider)
+        IDirectoryService directoryService, IFileService fileService, IServiceProvider serviceProvider,
+        IEncryptionService encryptionService, ITypeFactory typeFactory, IOpenFileService openFileService,
+        IMessageService messageService)
         : base(serviceProvider)
     {
         _screenCaptureService = screenCaptureService;
@@ -36,12 +42,23 @@ public class MainViewModel : ViewModelBase
         _appDataService = appDataService;
         _directoryService = directoryService;
         _fileService = fileService;
+        _encryptionService = encryptionService;
+        _typeFactory = typeFactory;
+        _openFileService = openFileService;
+        _messageService = messageService;
 
         Screenshot = new TaskCommand(serviceProvider, OnScreenshotExecuteAsync);
         ShowSystemInfo = new TaskCommand(serviceProvider, OnShowSystemInfoExecuteAsync);
         SavePackage = new TaskCommand(serviceProvider, OnSavePackageExecuteAsync);
+        EncryptAndSavePackage = new TaskCommand(serviceProvider, OnEncryptAndSavePackageExecuteAsync);
+        GenerateKeys = new TaskCommand(serviceProvider, OnGenerateKeysExecuteAsync);
+        DecryptPackage = new TaskCommand(serviceProvider, OnDecryptPackageExecuteAsync);
 
         Title = "Orc.SupportPackage example";
+
+        var currentDirectory = Environment.CurrentDirectory;
+        PublicKeyPath = Path.Combine(currentDirectory, "public.pem");
+        PrivateKeyPath = Path.Combine(currentDirectory, "private.pem");
     }
 
     public TaskCommand SavePackage { get; private set; }
@@ -49,6 +66,71 @@ public class MainViewModel : ViewModelBase
     private async Task OnSavePackageExecuteAsync()
     {
         await _uiVisualizerService.ShowDialogAsync<SupportPackageViewModel>();
+    }
+
+    public TaskCommand EncryptAndSavePackage { get; private set; }
+
+    private async Task OnEncryptAndSavePackageExecuteAsync()
+    {
+        var supportPackageViewModel = _typeFactory.CreateInstance<SupportPackageViewModel>();
+        supportPackageViewModel.EncryptionContext = new EncryptionContext
+        {
+            PrivateKeyPath = PrivateKeyPath,
+            PublicKey = await _encryptionService.ReadPublicKeyFromPemFileAsync(PublicKeyPath)
+        };
+
+        await _uiVisualizerService.ShowDialogAsync(supportPackageViewModel);
+    }
+
+    public TaskCommand GenerateKeys { get; private set; }
+
+    private async Task OnGenerateKeysExecuteAsync()
+    {
+        _encryptionService.Generate(PrivateKeyPath, PublicKeyPath);
+        await _messageService.ShowInformationAsync("Encryption keys generated");
+    }
+
+    public TaskCommand DecryptPackage { get; private set; }
+
+    private async Task OnDecryptPackageExecuteAsync()
+    {
+        var result = await _openFileService.DetermineFileAsync(new DetermineOpenFileContext
+        {
+        });
+
+        if (!result.Result || result.FileName is null)
+        {
+            return;
+        }
+
+        var directory = Path.GetDirectoryName(result.FileName);
+        var fileName = Path.GetFileNameWithoutExtension(result.FileName);
+
+        if (directory is null)
+        {
+            return;
+        }
+
+        var decryptedPackagePath = Path.Combine(directory, $"{fileName}_dec.spkg");
+
+        using (var sourceStream = _fileService.OpenRead(result.FileName))
+        {
+            if (_fileService.Exists(decryptedPackagePath))
+            {
+                _fileService.Delete(decryptedPackagePath);
+            }
+
+            using (var targetStream = _fileService.Create(decryptedPackagePath))
+            {
+                await _encryptionService.DecryptAsync(sourceStream, targetStream, new EncryptionContext
+                {
+                    PrivateKeyPath = PrivateKeyPath,
+                    PublicKey = await _encryptionService.ReadPublicKeyFromPemFileAsync(PublicKeyPath)
+                });
+            }
+        }
+
+        await _messageService.ShowInformationAsync($"Decrypted support package saved on path {decryptedPackagePath}");
     }
 
     public TaskCommand Screenshot { get; private set; }
@@ -91,4 +173,8 @@ public class MainViewModel : ViewModelBase
     public BitmapImage ScreenPic { get; private set; }
 
     public string SystemInfo { get; set; }
+
+    public string PrivateKeyPath { get; set; }
+
+    public string PublicKeyPath { get; set; }
 }

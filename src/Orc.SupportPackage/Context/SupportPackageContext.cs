@@ -1,4 +1,4 @@
-﻿namespace Orc.SupportPackage;
+namespace Orc.SupportPackage;
 
 using System;
 using System.IO;

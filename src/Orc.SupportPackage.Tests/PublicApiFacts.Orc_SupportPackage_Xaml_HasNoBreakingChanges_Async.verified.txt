@@ -32,6 +32,7 @@ namespace Orc.SupportPackage
     public interface ISupportPackageBuilderService
     {
         System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string fileName, System.Collections.Generic.List<Orc.SupportPackage.SupportPackageFileSystemArtifact> artifacts);
+        System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string fileName, System.Collections.Generic.List<Orc.SupportPackage.SupportPackageFileSystemArtifact> artifacts, Orc.SupportPackage.EncryptionContext? encryptionContext);
     }
     public interface ISupportPackageContentProvider
     {
@@ -41,6 +42,7 @@ namespace Orc.SupportPackage
     {
         public SupportPackageBuilderService(Orc.SupportPackage.ISupportPackageService supportPackageService, Orc.FileSystem.IFileService fileService) { }
         public virtual System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string fileName, System.Collections.Generic.List<Orc.SupportPackage.SupportPackageFileSystemArtifact> artifacts) { }
+        public virtual System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string fileName, System.Collections.Generic.List<Orc.SupportPackage.SupportPackageFileSystemArtifact> artifacts, Orc.SupportPackage.EncryptionContext? encryptionContext) { }
     }
     public class SupportPackageDirectory : Orc.SupportPackage.SupportPackageFileSystemArtifact
     {
@@ -70,6 +72,7 @@ namespace Orc.SupportPackage.ViewModels
         public Catel.MVVM.TaskCommand AddFileCommand { get; }
         public Catel.MVVM.TaskCommand CreateSupportPackage { get; }
         public Catel.Collections.FastObservableCollection<string> CustomPaths { get; }
+        public Orc.SupportPackage.EncryptionContext? EncryptionContext { get; set; }
         public bool IncludeCustomPathsInSupportPackage { get; set; }
         public string? LastSupportPackageFileName { get; }
         public Catel.MVVM.Command OpenDirectory { get; }
