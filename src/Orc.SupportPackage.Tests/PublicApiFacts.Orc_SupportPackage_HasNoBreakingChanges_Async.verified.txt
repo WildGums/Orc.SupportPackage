@@ -16,6 +16,32 @@ namespace Orc
 }
 namespace Orc.SupportPackage
 {
+    public class EncryptionContext
+    {
+        public EncryptionContext() { }
+        public EncryptionContext(Orc.SupportPackage.EncryptionContext context) { }
+        public EncryptionContext(string publicKey) { }
+        public string PrivateKeyPath { get; set; }
+        public string PublicKey { get; set; }
+    }
+    public class EncryptionService : Orc.SupportPackage.IEncryptionService
+    {
+        public EncryptionService(Orc.FileSystem.IFileService fileService) { }
+        public System.Threading.Tasks.Task DecryptAsync(System.IO.Stream sourceStream, System.IO.Stream targetStream, Orc.SupportPackage.EncryptionContext context) { }
+        public System.Threading.Tasks.Task EncryptAsync(System.IO.Stream sourceStream, System.IO.Stream targetStream, Orc.SupportPackage.EncryptionContext content) { }
+        public void Generate(string secretPath, string publicKeyPath) { }
+        public System.Threading.Tasks.Task<string> ReadPrivateKeyFromPemFileAsync(string keyPath) { }
+        public System.Threading.Tasks.Task<string> ReadPublicKeyFromPemFileAsync(string keyPath) { }
+        protected virtual System.Security.Cryptography.SymmetricAlgorithm CreateAlghorithm() { }
+        protected virtual byte[] GenerateSymmetricKey(int bits) { }
+    }
+    public interface IEncryptionService
+    {
+        System.Threading.Tasks.Task DecryptAsync(System.IO.Stream sourceStream, System.IO.Stream targetStream, Orc.SupportPackage.EncryptionContext content);
+        System.Threading.Tasks.Task EncryptAsync(System.IO.Stream sourceStream, System.IO.Stream targetStream, Orc.SupportPackage.EncryptionContext content);
+        void Generate(string secretLocation, string publicKeyLocation);
+        System.Threading.Tasks.Task<string> ReadPublicKeyFromPemFileAsync(string keyPath);
+    }
     public interface IScreenCaptureService
     {
         System.Drawing.Image CaptureWindowImage(System.Windows.Window window);
@@ -33,6 +59,7 @@ namespace Orc.SupportPackage
     public interface ISupportPackageService
     {
         System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns);
+        System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns, Orc.SupportPackage.EncryptionContext? encryptionContext);
     }
     public class ScreenCaptureService : Orc.SupportPackage.IScreenCaptureService
     {
@@ -54,8 +81,9 @@ namespace Orc.SupportPackage
     }
     public class SupportPackageService : Orc.SupportPackage.ISupportPackageService
     {
-        public SupportPackageService(Microsoft.Extensions.Logging.ILogger<Orc.SupportPackage.SupportPackageService> logger, Orc.SystemInfo.ISystemInfoService systemInfoService, Orc.SupportPackage.IScreenCaptureService screenCaptureService, Orc.FileSystem.IDirectoryService directoryService, Orc.FileSystem.IFileService fileService, Catel.Reflection.IEntryAssemblyResolver entryAssemblyResolver, Catel.Services.IAppDataService appDataService, System.Collections.Generic.IEnumerable<Orc.SupportPackage.ISupportPackageProvider> supportPackageProviders) { }
+        public SupportPackageService(Microsoft.Extensions.Logging.ILogger<Orc.SupportPackage.SupportPackageService> logger, Orc.SystemInfo.ISystemInfoService systemInfoService, Orc.SupportPackage.IScreenCaptureService screenCaptureService, Orc.FileSystem.IDirectoryService directoryService, Orc.FileSystem.IFileService fileService, Catel.Reflection.IEntryAssemblyResolver entryAssemblyResolver, Catel.Services.IAppDataService appDataService, System.Collections.Generic.IEnumerable<Orc.SupportPackage.ISupportPackageProvider> supportPackageProviders, Orc.SupportPackage.IEncryptionService encryptionService) { }
         public virtual System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns) { }
+        public virtual System.Threading.Tasks.Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns, Orc.SupportPackage.EncryptionContext? encryptionContext) { }
     }
     public static class ZipArchiveExtensions
     {

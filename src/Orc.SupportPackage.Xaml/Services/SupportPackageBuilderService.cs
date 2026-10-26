@@ -1,4 +1,4 @@
-﻿namespace Orc.SupportPackage;
+namespace Orc.SupportPackage;
 
 using System;
 using System.Collections.Generic;
@@ -28,7 +28,12 @@ public class SupportPackageBuilderService : ISupportPackageBuilderService
         _fileService = fileService;
     }
 
-    public virtual async Task<bool> CreateSupportPackageAsync(string fileName, List<SupportPackageFileSystemArtifact> artifacts)
+    public virtual Task<bool> CreateSupportPackageAsync(string fileName, List<SupportPackageFileSystemArtifact> artifacts)
+    {
+        return CreateSupportPackageAsync(fileName, artifacts, null);
+    }
+
+    public virtual async Task<bool> CreateSupportPackageAsync(string fileName, List<SupportPackageFileSystemArtifact> artifacts, EncryptionContext? encryptionContext)
     {
         Argument.IsNotNullOrWhitespace(() => fileName);
         ArgumentNullException.ThrowIfNull(artifacts);
@@ -66,7 +71,7 @@ public class SupportPackageBuilderService : ISupportPackageBuilderService
             builder.AppendLine("- " + directory);
         }
 
-        var result = await _supportPackageService.CreateSupportPackageAsync(fileName, directories, excludeFileNamePatterns);
+        var result = await _supportPackageService.CreateSupportPackageAsync(fileName, directories, excludeFileNamePatterns, encryptionContext);
 
         const string customDataDirectoryName = "CustomData";
         await using var fileStream = new FileStream(fileName, FileMode.OpenOrCreate);

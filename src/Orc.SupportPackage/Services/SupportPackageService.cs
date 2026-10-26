@@ -1,4 +1,4 @@
-﻿namespace Orc.SupportPackage;
+namespace Orc.SupportPackage;
 
 using System;
 using System.Collections.Generic;
@@ -30,11 +30,12 @@ public class SupportPackageService : ISupportPackageService
     private readonly IEntryAssemblyResolver _entryAssemblyResolver;
     private readonly IAppDataService _appDataService;
     private readonly IReadOnlyList<ISupportPackageProvider> _supportPackageProviders;
+    private readonly IEncryptionService _encryptionService;
 
     public SupportPackageService(ILogger<SupportPackageService> logger, ISystemInfoService systemInfoService,
         IScreenCaptureService screenCaptureService, IDirectoryService directoryService, IFileService fileService,
-        IEntryAssemblyResolver entryAssemblyResolver, IAppDataService appDataService, 
-        IEnumerable<ISupportPackageProvider> supportPackageProviders)
+        IEntryAssemblyResolver entryAssemblyResolver, IAppDataService appDataService,
+        IEnumerable<ISupportPackageProvider> supportPackageProviders, IEncryptionService encryptionService)
     {
         _logger = logger;
         _systemInfoService = systemInfoService;
@@ -44,10 +45,17 @@ public class SupportPackageService : ISupportPackageService
         _entryAssemblyResolver = entryAssemblyResolver;
         _appDataService = appDataService;
         _supportPackageProviders = supportPackageProviders.ToArray();
+        _encryptionService = encryptionService;
     }
 
     [Time]
-    public virtual async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns)
+    public virtual Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns)
+    {
+        return CreateSupportPackageAsync(zipFileName, directories, excludeFileNamePatterns, null);
+    }
+
+    [Time]
+    public virtual async Task<bool> CreateSupportPackageAsync(string zipFileName, string[] directories, string[] excludeFileNamePatterns, EncryptionContext? encryptionContext)
     {
         Argument.IsNotNullOrEmpty(() => zipFileName);
 
@@ -81,49 +89,23 @@ public class SupportPackageService : ISupportPackageService
                     }
                 }
 
-                await using (var fileStream = new FileStream(zipFileName, FileMode.OpenOrCreate))
+                if (encryptionContext is not null)
                 {
-                    using (var zipArchive = new ZipArchive(fileStream, ZipArchiveMode.Update))
+                    using (var memoryStream = new MemoryStream())
                     {
-                        zipArchive.CreateEntryFromDirectory(_appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming), "AppData", CompressionLevel.Optimal);
-                        zipArchive.CreateEntryFromDirectory(supportPackageContext.RootDirectory, string.Empty, CompressionLevel.Optimal);
+                        await ZipSupportPackageContentAsync(memoryStream, supportPackageContext, directories, excludeFileNamePatterns);
 
-                        if (directories is not null && directories.Length > 0)
+                        await using (var fileStream = new FileStream(zipFileName, FileMode.OpenOrCreate))
                         {
-                            foreach (var directory in directories)
-                            {
-                                if (!_directoryService.Exists(directory))
-                                {
-                                    _logger.LogWarning("Directory '{Directory}' does not exist, skipping", directory);
-                                    continue;
-                                }
-
-                                var directoryPathInArchive = directory.TrimEnd('\\').Split('\\').LastOrDefault();
-                                if (!string.IsNullOrEmpty(directoryPathInArchive))
-                                {
-                                    zipArchive.CreateEntryFromDirectory(directory, string.Empty, CompressionLevel.Optimal);
-                                }
-                            }
+                            await _encryptionService.EncryptAsync(memoryStream, fileStream, encryptionContext);
                         }
-
-                        if (excludeFileNamePatterns is not null && excludeFileNamePatterns.Length > 0)
-                        {
-                            _logger.LogInformation("Removing excluded files...");
-
-                            var excludeFileNameRegexes = excludeFileNamePatterns.Select(s => new Regex(s.Replace("*", ".*").Replace(".", "\\.") + "$", 
-                                RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1))).ToList();
-
-                            var zipEntries = zipArchive.Entries.ToList();
-                            foreach (var zipEntry in zipEntries)
-                            {
-                                if (excludeFileNameRegexes.Any(regex => regex.IsMatch(zipEntry.FullName)))
-                                {
-                                    zipEntry.Delete();
-                                }
-                            }
-                        }
-
-                        await fileStream.FlushAsync();
+                    }
+                }
+                else
+                {
+                    await using (var fileStream = new FileStream(zipFileName, FileMode.OpenOrCreate))
+                    {
+                        await ZipSupportPackageContentAsync(fileStream, supportPackageContext, directories, excludeFileNamePatterns);
                     }
                 }
             }
@@ -137,6 +119,52 @@ public class SupportPackageService : ISupportPackageService
         }
 
         return result;
+    }
+
+    private async Task ZipSupportPackageContentAsync(Stream stream, SupportPackageContext supportPackageContext, string[] directories, string[] excludeFileNamePatterns)
+    {
+        using (var zipArchive = new ZipArchive(stream, ZipArchiveMode.Update, true))
+        {
+            zipArchive.CreateEntryFromDirectory(_appDataService.GetApplicationDataDirectory(Catel.IO.ApplicationDataTarget.UserRoaming), "AppData", CompressionLevel.Optimal);
+            zipArchive.CreateEntryFromDirectory(supportPackageContext.RootDirectory, string.Empty, CompressionLevel.Optimal);
+
+            if (directories is not null && directories.Length > 0)
+            {
+                foreach (var directory in directories)
+                {
+                    if (!_directoryService.Exists(directory))
+                    {
+                        _logger.LogWarning("Directory '{Directory}' does not exist, skipping", directory);
+                        continue;
+                    }
+
+                    var directoryPathInArchive = directory.TrimEnd('\\').Split('\\').LastOrDefault();
+                    if (!string.IsNullOrEmpty(directoryPathInArchive))
+                    {
+                        zipArchive.CreateEntryFromDirectory(directory, string.Empty, CompressionLevel.Optimal);
+                    }
+                }
+            }
+
+            if (excludeFileNamePatterns is not null && excludeFileNamePatterns.Length > 0)
+            {
+                _logger.LogInformation("Removing excluded files...");
+
+                var excludeFileNameRegexes = excludeFileNamePatterns.Select(s => new Regex(s.Replace("*", ".*").Replace(".", "\\.") + "$",
+                    RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1))).ToList();
+
+                var zipEntries = zipArchive.Entries.ToList();
+                foreach (var zipEntry in zipEntries)
+                {
+                    if (excludeFileNameRegexes.Any(regex => regex.IsMatch(zipEntry.FullName)))
+                    {
+                        zipEntry.Delete();
+                    }
+                }
+            }
+
+            await stream.FlushAsync();
+        }
     }
 
     private async Task CaptureWindowAndSaveAsync(string screenshotFile)
