@@ -1,4 +1,4 @@
-﻿namespace Orc.SupportPackage.ViewModels;
+namespace Orc.SupportPackage.ViewModels;
 
 using System;
 using System.Collections.Generic;
@@ -88,6 +88,13 @@ public class SupportPackageViewModel : ViewModelBase
     public bool IncludeCustomPathsInSupportPackage { get; set; }
 
     public List<string> SelectedCustomPaths { get; }
+
+    /// <summary>
+    /// Optional encryption context. When set, the support package will be encrypted.
+    /// Applications can provide their own <see cref="IEncryptionService"/> implementation
+    /// via dependency injection to customize the encryption algorithm.
+    /// </summary>
+    public EncryptionContext? EncryptionContext { get; set; }
 
     public TaskCommand AddDirectoryCommand { get; set; }
 
@@ -210,7 +217,7 @@ public class SupportPackageViewModel : ViewModelBase
                        _isCreatingSupportPackage = false;
                    }))
         {
-            await Task.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, supportPackageFileSystemArtifacts));
+            await Task.Run(() => _supportPackageService.CreateSupportPackageAsync(fileName, supportPackageFileSystemArtifacts, EncryptionContext));
 
             LastSupportPackageFileName = fileName;
         }

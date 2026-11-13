@@ -15,6 +15,7 @@ public static class OrcSupportPackageModule
     {
         serviceCollection.TryAddSingleton<ISupportPackageService, SupportPackageService>();
         serviceCollection.TryAddSingleton<IScreenCaptureService, ScreenCaptureService>();
+        serviceCollection.TryAddSingleton<IEncryptionService, EncryptionService>();
 
         serviceCollection.AddSingleton<ILanguageSource>(new LanguageResourceSource("Orc.SupportPackage", "Orc.SupportPackage.Properties", "Resources"));
 

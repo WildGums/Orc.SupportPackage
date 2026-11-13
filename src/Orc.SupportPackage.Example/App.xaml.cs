@@ -1,4 +1,4 @@
-﻿namespace Orc.SupportPackage.Example;
+namespace Orc.SupportPackage.Example;
 
 using System.Globalization;
 using System.Windows;
